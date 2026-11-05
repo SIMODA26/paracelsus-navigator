@@ -44,7 +44,7 @@
       <div class="pc-header">
         <div class="pc-header-brand">
           <div class="pc-brand-p">
-            <img src="${baseUrl}/assets/bildmarke_p.png" alt="P">
+            <img src="${baseUrl}/assets/bildmarke_p.png" alt="Paracelsus">
           </div>
           <div class="pc-header-info">
             <h4 id="pcHeaderTitle">Paracelsus Wegweiser</h4>
@@ -62,7 +62,23 @@
               <option value="uk">UK</option>
             </select>
           </div>
-          <button class="pc-close-btn" id="pcCloseBtn" aria-label="Schließen">&times;</button>
+          <button class="pc-close-btn" id="pcCloseBtn" aria-label="Schließen">
+            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+      </div>
+
+      <!-- Segmented Mode Control -->
+      <div class="pc-mode-pill-bar">
+        <div class="pc-mode-toggle" role="tablist">
+          <button type="button" class="pc-mode-btn active" id="pcModeChat">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+            Chat
+          </button>
+          <button type="button" class="pc-mode-btn" id="pcModeVoice">
+            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+            Sprache
+          </button>
         </div>
       </div>
 
@@ -81,27 +97,30 @@
           <br><br>
           <strong>Wobei dürfen wir Ihnen behilflich sein?</strong>
           <div class="pc-chips">
-            <button class="pc-chip" data-query="Parkinson & Bewegungsstörungen">Parkinson / Neurologie</button>
-            <button class="pc-chip" data-query="Prostata & Urologie">Prostata / Urologie</button>
-            <button class="pc-chip" data-query="Gelenke, Knie & Hüfte">Orthopädie / Gelenke</button>
-            <button class="pc-chip" data-query="Zentrale Notaufnahme">Notaufnahme</button>
-            <button class="pc-chip" data-query="Checkliste für die Aufnahme">Koffer-Packliste</button>
+            <button class="pc-chip" data-query="Parkinson & Bewegungsstörungen">🧠 Parkinson / Neurologie</button>
+            <button class="pc-chip" data-query="Prostata & Urologie">🔬 Prostata / Urologie</button>
+            <button class="pc-chip" data-query="Gelenke, Knie & Hüfte">🦴 Orthopädie / Gelenke</button>
+            <button class="pc-chip" data-query="Zentrale Notaufnahme">🚑 Notaufnahme 24/7</button>
+            <button class="pc-chip" data-query="Checkliste für die Aufnahme">📋 Koffer-Packliste</button>
             <button class="pc-chip" data-query="Zuweiser und Ärzteportal">🩺 Für Ärzte / Zuweiser</button>
-            <button class="pc-chip" data-query="Karriere und Jobs">Karriere / Jobs</button>
+            <button class="pc-chip" data-query="Karriere und Jobs">💼 Karriere / Jobs</button>
           </div>
         </div>
       </div>
 
       <form class="pc-input-bar" id="pcDrawerForm">
+        <button type="button" class="pc-dock-btn" id="pcPacklisteDockBtn" title="Koffer-Packliste anzeigen" aria-label="Packliste">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 6.5l-8.5 8.5a3 3 0 004.24 4.24l9.19-9.19a4.5 4.5 0 00-6.36-6.36l-9.2 9.19a6 6 0 008.49 8.49l8.48-8.49"/></svg>
+        </button>
         <input 
           type="text" 
           id="pcDrawerInput" 
-          placeholder="Beschwerde, Fachgebiet oder Stadt eingeben..." 
+          placeholder="Frage oder Beschwerde eingeben..." 
           autocomplete="off"
           aria-label="Suchanfrage eingeben"
         >
-        <button type="button" class="pc-voice-btn" id="pcVoiceBtn" title="Spracheingabe starten" aria-label="Spracheingabe starten">
-          <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+        <button type="button" class="pc-dock-btn pc-voice-btn" id="pcVoiceBtn" title="Spracheingabe starten" aria-label="Spracheingabe starten">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
             <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
             <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
           </svg>

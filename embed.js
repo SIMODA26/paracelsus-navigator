@@ -47,7 +47,7 @@
         </div>
       </button>
 
-      <!-- Chat Window Drawer -->
+      <!-- Chat Window Drawer (Frosted Glass Popup) -->
       <div class="paracelsus-chat-window closed" id="chatWindow" role="dialog" aria-modal="true" aria-labelledby="chatHeaderTitle">
         <div class="pc-header">
           <div class="pc-header-brand">
@@ -71,7 +71,23 @@
                 <option value="uk">UK</option>
               </select>
             </div>
-            <button class="pc-close-btn" onclick="window.toggleChat(false)" aria-label="Schließen">&times;</button>
+            <button class="pc-close-btn" onclick="window.toggleChat(false)" aria-label="Schließen">
+              <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2.5" fill="none" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Segmented Mode Control -->
+        <div class="pc-mode-pill-bar">
+          <div class="pc-mode-toggle" role="tablist">
+            <button type="button" class="pc-mode-btn active" id="pcModeChat" onclick="window.switchMode('chat')">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
+              Chat
+            </button>
+            <button type="button" class="pc-mode-btn" id="pcModeVoice" onclick="window.switchMode('voice')">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
+              Sprache
+            </button>
           </div>
         </div>
 
@@ -90,22 +106,25 @@
             <br><br>
             <strong>Wobei können wir Ihnen heute helfen?</strong>
             <div class="pc-chips">
-              <button class="pc-chip" onclick="window.handleChipClick('Parkinson & Bewegungsstörungen')">Parkinson / Neurologie</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Prostata & Urologie')">Prostata / Urologie</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Gelenke, Knie & Hüfte')">Orthopädie / Gelenke</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Zentrale Notaufnahme')">Notaufnahme</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Checkliste für den Klinikaufenthalt')">Koffer-Packliste</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Parkinson & Bewegungsstörungen')">🧠 Parkinson / Neurologie</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Prostata & Urologie')">🔬 Prostata / Urologie</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Gelenke, Knie & Hüfte')">🦴 Orthopädie / Gelenke</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Zentrale Notaufnahme')">🚑 Notaufnahme 24/7</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Checkliste für den Klinikaufenthalt')">📋 Koffer-Packliste</button>
               <button class="pc-chip" onclick="window.handleChipClick('Zuweiser und Ärzteportal')">🩺 Für Ärzte / Zuweiser</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Karriere und Jobs')">Karriere / Jobs</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Karriere und Jobs')">💼 Karriere / Jobs</button>
             </div>
           </div>
         </div>
 
         <form class="pc-input-bar" id="pcForm" onsubmit="window.handleFormSubmit(event)">
+          <button type="button" class="pc-dock-btn" onclick="window.handleChipClick('Checkliste für den Klinikaufenthalt')" title="Aufnahme-Packliste öffnen" aria-label="Packliste">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 6.5l-8.5 8.5a3 3 0 004.24 4.24l9.19-9.19a4.5 4.5 0 00-6.36-6.36l-9.2 9.19a6 6 0 008.49 8.49l8.48-8.49"/></svg>
+          </button>
           <input 
             type="text" 
             id="pcInput" 
-            placeholder="Beschwerde, Fachgebiet oder Stadt eingeben..." 
+            placeholder="Frage oder Beschwerde eingeben..." 
             autocomplete="off"
             aria-label="Suchanfrage eingeben"
           >
