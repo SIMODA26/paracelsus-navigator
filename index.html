@@ -39,42 +39,40 @@
   <header class="site-header">
     <div class="site-top-bar">
       <div>Akutkliniken &bull; Fachkliniken &bull; Reha &bull; MVZ</div>
-      <div style="display: flex; align-items: center; gap: 14px;">
+      <div style="display: flex; align-items: center; gap: 16px;">
         <span class="emergency-hotline">🚨 Ärztlicher Notdienst: 116 117 | Notruf: 112</span>
+        <a href="#sprechstunde">Sprechstunde</a>
+        <a href="#mvz">MVZ</a>
         <a href="#karriere">Karriere</a>
         <a href="#kontakt">Kontakt</a>
       </div>
     </div>
 
     <nav class="site-nav-container">
-      <a href="#" class="brand-logo-wrap">
-        <img src="assets/bildmarke_p.png" alt="Paracelsus Bildmarke" class="brand-logo-img">
-        <div class="brand-logo-text">
-          <span class="brand-name">Paracelsus</span>
-          <span class="brand-claim">Kliniken Deutschland</span>
-        </div>
+      <a href="#" class="brand-logo-wrap" aria-label="Paracelsus Kliniken Startseite">
+        <img src="assets/paracelsus_logo_full.png" alt="Paracelsus Kliniken" class="brand-logo-img">
       </a>
 
       <ul class="site-menu">
         <li><a href="#standorte" class="active">Kliniken & Standorte</a></li>
         <li><a href="#fachbereiche">Fachbereiche</a></li>
         <li><a href="#behandlung">Behandlung & Aufenthalt</a></li>
-        <li><a href="#karriere">Karriere & Ausbildung</a></li>
-        <li><a href="javascript:toggleChat(true)" class="site-btn-nav">💬 Klinik-Finder</a></li>
+        <li><a href="#unternehmen">Unternehmen</a></li>
+        <li><a href="#karriere">Karriere</a></li>
+        <li><button type="button" onclick="toggleChat(true)" class="site-btn-nav">💬 Klinik-Wegweiser</button></li>
       </ul>
     </nav>
   </header>
 
   <!-- =========================================================================
-       Paracelsus Hero Banner
+       Paracelsus Hero Banner (Authentischer Auftritt: „Versteht zu verbessern!“)
        ========================================================================= -->
   <section class="hero-section">
     <div class="hero-inner">
       <span class="hero-badge">Spitzenmedizin &bull; Nah am Menschen</span>
-      <h1 class="hero-title">Gesundheit neu denken.<br><span class="accent">Verlässliche Medizin</span> in ganz Deutschland.</h1>
-      <p class="hero-subline">
-        Von spezialisierten Parkinson- und Urologie-Zentren bis zur regionalen Notfallversorgung: 
-        Finden Sie schnell und unkompliziert die richtige Klinik und Ihren Ansprechpartner.
+      <h1 class="hero-title">Versteht zu verbessern!</h1>
+      <p class="hero-quote">
+        „Gesundheitsversorgung verändert sich – und wir gestalten diesen Wandel aktiv. Paracelsus steht für Medizin, die Menschen versteht: fachlich stark, menschlich nah, fortschrittlich im Denken. Unser Ziel: der Ort, an dem außergewöhnliche Köpfe ihr Bestes geben.“
       </p>
 
       <!-- Quick Finder Search -->
@@ -88,46 +86,232 @@
         >
         <button class="quick-finder-btn" onclick="triggerSearchFromHero()">Klinik finden &rarr;</button>
       </div>
+
+      <!-- Quick Filter Chips -->
+      <div class="hero-quick-chips">
+        <span class="quick-chips-label">Häufig gesucht:</span>
+        <button class="hero-chip" onclick="openWithQuery('Parkinson Spezialklinik Kassel')">🧠 Parkinson (Kassel)</button>
+        <button class="hero-chip" onclick="openWithQuery('DaVinci Roboter Prostata Düsseldorf')">🤖 DaVinci Urologie (Düsseldorf)</button>
+        <button class="hero-chip" onclick="openWithQuery('Orthopädie neues Knie Bremen')">🦴 Knie & Hüfte (Bremen)</button>
+        <button class="hero-chip" onclick="openWithQuery('Notaufnahme 24/7 Henstedt-Ulzburg')">🚨 Notaufnahme (Henstedt-Ulzburg)</button>
+        <button class="hero-chip" onclick="openWithQuery('Koffer Packliste')">📋 Koffer-Packliste</button>
+      </div>
     </div>
   </section>
 
   <!-- =========================================================================
-       Website Content Section (Beispiel-Teaser)
+       Website Content Section 1: „In welchem Bereich können wir Ihnen helfen?“
        ========================================================================= -->
-  <main class="content-section">
-    <div class="section-label">Kompetenznetzwerk</div>
-    <h2 class="section-title">Ausgewählte Schwerpunkte unserer Fachkliniken</h2>
+  <main class="content-section" id="fachbereiche">
+    <div class="section-label">Versorgungsschwerpunkte</div>
+    <h2 class="section-title">In welchem Bereich können wir Ihnen helfen?</h2>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <div>
+          <div class="feature-icon-title">
+            <span class="feature-icon">🧠</span>
+            <h3>Neurologie & Parkinson</h3>
+          </div>
+          <p>Morbus Parkinson, atypische Parkinson-Syndrome, Tremor, Bewegungsstörungen und multimodale Komplexbehandlung.</p>
+        </div>
+        <a href="javascript:openWithQuery('Parkinson Zentrum Elena Klinik')">Fachzentrum Kassel öffnen &rarr;</a>
+      </div>
+
+      <div class="feature-card">
+        <div>
+          <div class="feature-icon-title">
+            <span class="feature-icon">🤖</span>
+            <h3>Urologie & DaVinci Robotik</h3>
+          </div>
+          <p>International führendes Prostatakarzinomzentrum, Nierentumore, MRT-Fusionsbiopsie und DaVinci Xi Präzisionschirurgie.</p>
+        </div>
+        <a href="javascript:openWithQuery('Urologie DaVinci Düsseldorf')">Fachzentrum Düsseldorf öffnen &rarr;</a>
+      </div>
+
+      <div class="feature-card">
+        <div>
+          <div class="feature-icon-title">
+            <span class="feature-icon">🦴</span>
+            <h3>Orthopädie & Gelenkersatz</h3>
+          </div>
+          <p>Zertifizierte Endoprothetik für Knie und Hüfte, minimalinvasive Gelenkchirurgie, Wirbelsäulentherapie und Schmerzzentrum.</p>
+        </div>
+        <a href="javascript:openWithQuery('Endoprothetik Knie Hüfte')">Standorte Bremen & München öffnen &rarr;</a>
+      </div>
+
+      <div class="feature-card">
+        <div>
+          <div class="feature-icon-title">
+            <span class="feature-icon">🚨</span>
+            <h3>24/7 Akut- & Notfallmedizin</h3>
+          </div>
+          <p>Rund um die Uhr besetzte Zentrale Notaufnahme (ZNA), Notfallchirurgie, Traumatologie und internistische Sofortversorgung.</p>
+        </div>
+        <a href="javascript:openWithQuery('Notaufnahme Notfall Henstedt-Ulzburg')">Notfall-Infos Henstedt-Ulzburg &rarr;</a>
+      </div>
+
+      <div class="feature-card">
+        <div>
+          <div class="feature-icon-title">
+            <span class="feature-icon">🌿</span>
+            <h3>Rheumatologie & Schmerztherapie</h3>
+          </div>
+          <p>Spezialisierte internistische Rheumatologie, multimodale Schmerztherapie und Behandlung degenerativer Wirbelsäulenerkrankungen.</p>
+        </div>
+        <a href="javascript:openWithQuery('Rheumatologie Schmerztherapie Langenhagen')">Klinik Langenhagen öffnen &rarr;</a>
+      </div>
+
+      <div class="feature-card">
+        <div>
+          <div class="feature-icon-title">
+            <span class="feature-icon">📋</span>
+            <h3>Klinikaufenthalt & Vorbereitung</h3>
+          </div>
+          <p>Interaktive Koffer-Packliste, benötigte Dokumente, Einweisung, Vorbereitung auf die OP und Wegweiser durch Ihren Aufenthalt.</p>
+        </div>
+        <a href="javascript:openWithQuery('Koffer Packliste für den Aufenthalt')">Koffer-Checkliste starten &rarr;</a>
+      </div>
+    </div>
+
+    <!-- =========================================================================
+         Website Content Section 2: „Unsere Standorte in ganz Deutschland“
+         ========================================================================= -->
+    <div class="section-label" id="standorte">Kliniknetzwerk Deutschland</div>
+    <h2 class="section-title">Unsere Standorte in ganz Deutschland</h2>
 
     <div class="clinics-grid">
       <div class="clinic-card">
         <span class="clinic-card-tag">Neurologie & Parkinson</span>
         <h3>Elena-Klinik Kassel</h3>
         <p>Deutschlands älteste und größte Fachklinik für Parkinson und Bewegungsstörungen mit international renommierten Spezialisten.</p>
-        <a href="javascript:openWithQuery('Parkinson Spezialklinik')">Fachbereich öffnen &rarr;</a>
+        <a href="javascript:openWithQuery('Elena-Klinik Kassel')">Standort & Fachbereich anzeigen &rarr;</a>
       </div>
 
       <div class="clinic-card">
         <span class="clinic-card-tag">Urologie & DaVinci Robotik</span>
         <h3>Klinik Golzheim Düsseldorf</h3>
         <p>Eines der führenden urologischen Zentren Europas: Prostatakarzinomzentrum, Nierenzentrum und rekonstruktive Urologie.</p>
-        <a href="javascript:openWithQuery('Urologie Düsseldorf')">Fachbereich öffnen &rarr;</a>
+        <a href="javascript:openWithQuery('Klinik Golzheim Düsseldorf')">Standort & Fachbereich anzeigen &rarr;</a>
       </div>
 
       <div class="clinic-card">
         <span class="clinic-card-tag">Orthopädie & Gelenke</span>
         <h3>Paracelsus Klinik Bremen</h3>
         <p>Zentrum für Endoprothetik, Sporttraumatologie, Wirbelsäulenchirurgie und multimodale Schmerztherapie.</p>
-        <a href="javascript:openWithQuery('Orthopädie Bremen')">Fachbereich öffnen &rarr;</a>
+        <a href="javascript:openWithQuery('Paracelsus Klinik Bremen')">Standort & Fachbereich anzeigen &rarr;</a>
       </div>
 
       <div class="clinic-card">
         <span class="clinic-card-tag">Akut- & Notfallmedizin</span>
         <h3>Klinik Henstedt-Ulzburg</h3>
         <p>Zentrale 24/7 Notaufnahme (ZNA), Allgemeinchirurgie und Innere Medizin für den Raum Hamburg und Süd-Schleswig-Holstein.</p>
-        <a href="javascript:openWithQuery('Notaufnahme Henstedt-Ulzburg')">Fachbereich öffnen &rarr;</a>
+        <a href="javascript:openWithQuery('Klinik Henstedt-Ulzburg')">Standort & Fachbereich anzeigen &rarr;</a>
+      </div>
+
+      <div class="clinic-card">
+        <span class="clinic-card-tag">Rheumatologie & Schmerz</span>
+        <h3>Klinik am Silbersee Langenhagen</h3>
+        <p>Führendes Fachzentrum für internistische Rheumatologie, multimodale Schmerztherapie und orthopädische Rehabilitation.</p>
+        <a href="javascript:openWithQuery('Klinik am Silbersee Langenhagen')">Standort & Fachbereich anzeigen &rarr;</a>
+      </div>
+
+      <div class="clinic-card">
+        <span class="clinic-card-tag">Innere Medizin & Chirurgie</span>
+        <h3>Paracelsus Klinik Schöneck</h3>
+        <p>Regionales Kompetenzzentrum für Innere Medizin, Kardiologie, Gastroenterologie, Chirurgie und ambulantes Operieren.</p>
+        <a href="javascript:openWithQuery('Klinik Schöneck')">Standort & Fachbereich anzeigen &rarr;</a>
+      </div>
+
+      <div class="clinic-card">
+        <span class="clinic-card-tag">Chirurgie & Sportorthopädie</span>
+        <h3>Paracelsus Klinik München</h3>
+        <p>Spezialklinik für minimalinvasive Chirurgie, Knie- und Schulter-Gelenkersatz sowie Sporttraumatologie.</p>
+        <a href="javascript:openWithQuery('Klinik München')">Standort & Fachbereich anzeigen &rarr;</a>
       </div>
     </div>
+
+    <!-- =========================================================================
+         Zuweiser-Banner
+         ========================================================================= -->
+    <div class="zuweiser-banner">
+      <div class="zuweiser-banner-content">
+        <h3>🩺 Für niedergelassene Ärztinnen & Ärzte (Zuweiser-Service)</h3>
+        <p>Direkter Kontakt zum Belegungsmanagement, Notfall-Einweisungen und ambulante Vorbereitung. Nutzen Sie den Lotsendienst für schnelle Vermittlung.</p>
+      </div>
+      <button type="button" class="zuweiser-banner-btn" onclick="openWithQuery('Zuweiser und Ärzteportal')">
+        Zuweiser-Kontakte öffnen &rarr;
+      </button>
+    </div>
   </main>
+
+  <!-- =========================================================================
+       Paracelsus Authentischer Website-Footer
+       ========================================================================= -->
+  <footer class="site-footer">
+    <div class="footer-inner">
+      <div class="footer-grid">
+        <div class="footer-col">
+          <h4>🏥 Unsere Standorte</h4>
+          <ul>
+            <li><a href="javascript:openWithQuery('Elena-Klinik Kassel')">Paracelsus Elena-Klinik Kassel</a></li>
+            <li><a href="javascript:openWithQuery('Klinik Golzheim Düsseldorf')">Paracelsus Klinik Golzheim Düsseldorf</a></li>
+            <li><a href="javascript:openWithQuery('Klinik Bremen')">Paracelsus Klinik Bremen</a></li>
+            <li><a href="javascript:openWithQuery('Klinik Henstedt-Ulzburg')">Paracelsus Klinik Henstedt-Ulzburg</a></li>
+            <li><a href="javascript:openWithQuery('Klinik am Silbersee Langenhagen')">Paracelsus Klinik am Silbersee Langenhagen</a></li>
+            <li><a href="javascript:openWithQuery('Klinik Schöneck')">Paracelsus Klinik Schöneck</a></li>
+            <li><a href="javascript:openWithQuery('Klinik München')">Paracelsus Klinik München</a></li>
+            <li><a href="javascript:openWithQuery('MVZ Praxen')">Paracelsus MVZ Bremen &bull; Kassel &bull; Adorf</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>🩺 Fachbereiche</h4>
+          <ul>
+            <li><a href="javascript:openWithQuery('Parkinson')">Neurologie & Parkinson</a></li>
+            <li><a href="javascript:openWithQuery('Urologie DaVinci')">Urologie & DaVinci Robotik</a></li>
+            <li><a href="javascript:openWithQuery('Orthopädie Gelenke')">Orthopädie & Endoprothetik</a></li>
+            <li><a href="javascript:openWithQuery('Notfallaufnahme')">Zentrale Notaufnahme (ZNA)</a></li>
+            <li><a href="javascript:openWithQuery('Rheumatologie')">Rheumatologie & Schmerztherapie</a></li>
+            <li><a href="javascript:openWithQuery('Allgemeinchirurgie')">Chirurgie & Viszeralchirurgie</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>🏢 Unternehmen</h4>
+          <ul>
+            <li><a href="#unternehmen">Auf einen Blick</a></li>
+            <li><a href="#unternehmen">Unternehmen & Marke</a></li>
+            <li><a href="#qualitaet">Qualität & Patientensicherheit</a></li>
+            <li><a href="#presse">Presse & Mitteilungen</a></li>
+            <li><a href="javascript:openWithQuery('Karriere und Jobs')">Karriereportal & Pflege</a></li>
+            <li><a href="javascript:openWithQuery('Zuweiserportal')">Zuweiser-Service</a></li>
+          </ul>
+        </div>
+
+        <div class="footer-col">
+          <h4>📞 Notruf & Service</h4>
+          <ul>
+            <li style="color: #ff9e9e; font-weight: 700;">🚨 Notruf: 112</li>
+            <li style="color: var(--tuerkis); font-weight: 700;">📞 Notdienst: 116 117</li>
+            <li><a href="javascript:toggleChat(true)">💬 Digitaler Wegweiser</a></li>
+            <li><a href="javascript:openWithQuery('Koffer Packliste')">📋 Koffer-Packliste</a></li>
+            <li><a href="#kontakt">Kontakt & Anfahrt</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="footer-bottom">
+        <div>&copy; 2026 Paracelsus Kliniken Deutschland GmbH &bull; Alle Rechte vorbehalten.</div>
+        <div class="footer-bottom-links">
+          <a href="#impressum">Impressum</a>
+          <a href="#datenschutz">Datenschutz</a>
+          <a href="javascript:openComplianceModal()">MDR- & DSGVO-Audit</a>
+          <a href="#barrierefreiheit">Barrierefreiheit (BITV 2.0)</a>
+        </div>
+      </div>
+    </div>
+  </footer>
 
   <!-- =========================================================================
        Floating Paracelsus Navigator Widget
@@ -515,6 +699,10 @@
       URL.revokeObjectURL(url);
     }
 
+    function printChecklist() {
+      window.print();
+    }
+
     function appendBotResponse(res) {
       const msg = document.createElement("div");
 
@@ -613,7 +801,10 @@
             </div>
             <div class="pc-checklist-complete-badge" id="packCelebration" style="display: none;">✨ Alles erledigt! Sie sind bestens auf Ihren Aufenthalt vorbereitet.</div>
           </div>
-          <button type="button" class="pc-tts-btn" onclick="speakText('${res.message}')">🔊 Vorlesen</button>
+          <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+            <button type="button" class="pc-print-btn" onclick="printChecklist()">🖨️ Packliste drucken / PDF</button>
+            <button type="button" class="pc-tts-btn" onclick="speakText('${res.message}')">🔊 Vorlesen</button>
+          </div>
         `;
         if (res.chips && res.chips.length > 0) {
           html += `<div class="pc-chips">`;

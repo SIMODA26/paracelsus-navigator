@@ -187,6 +187,76 @@ function createCalendarEventContent(clinic) {
   return ics;
 }
 
+// 6. Metropolregionen- & Umland-Mapping
+const REGION_MAPPING = {
+  "duesseldorf-golzheim": [
+    "köln", "cologne", "bonn", "dortmund", "essen", "duisburg", "bochum",
+    "wuppertal", "krefeld", "mönchengladbach", "neuss", "solingen", "oberhausen",
+    "mülheim", "hagen", "leverkusen", "niederrhein", "ruhrpott", "ruhrgebiet"
+  ],
+  "henstedt-ulzburg": [
+    "hamburg", "norderstedt", "kaltenkirchen", "quickborn", "pinneberg",
+    "elmshorn", "bad segeberg", "neumünster", "kiel", "lübeck", "ahrensburg",
+    "wedel", "alstertal", "schleswig-holstein"
+  ],
+  "kassel-elena": [
+    "göttingen", "fulda", "marburg", "paderborn", "nordhessen", "bad hersfeld",
+    "baunatal", "eisenach", "waldeck", "fritzlar", "korbach"
+  ],
+  "bremen": [
+    "oldenburg", "delmenhorst", "bremerhaven", "verden", "vegesack", "osterholz",
+    "achim", "syke", "stuhr"
+  ],
+  "langenhagen-silbersee": [
+    "hannover", "celle", "burgwedel", "wedemark", "garbsen", "wunstorf",
+    "peine", "hildesheim"
+  ],
+  "schoeneck": [
+    "plauen", "vogtland", "auerbach", "reichenbach", "oelsnitz", "klingenthal",
+    "zwickau", "chemnitz", "hof"
+  ],
+  "muenchen": [
+    "augsburg", "rosenheim", "starnberg", "dachau", "freising", "erding",
+    "fürstenfeldbruck", "landshut", "oberbayern"
+  ]
+};
+
+// 7. Fuzzy-Matching & Tippfehler-Toleranz (Levenshtein-Distanz)
+function getLevenshteinDistance(a, b) {
+  if (a.length === 0) return b.length;
+  if (b.length === 0) return a.length;
+  const matrix = [];
+  for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+  for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+  for (let i = 1; i <= b.length; i++) {
+    for (let j = 1; j <= a.length; j++) {
+      if (b.charAt(i - 1) === a.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1,
+          Math.min(matrix[i][j - 1] + 1, matrix[i - 1][j] + 1)
+        );
+      }
+    }
+  }
+  return matrix[b.length][a.length];
+}
+
+function fuzzyContains(query, term) {
+  if (!query || !term) return false;
+  const cleanTerm = term.toLowerCase();
+  if (query.includes(cleanTerm)) return true;
+  if (cleanTerm.length < 5) return false;
+  const words = query.split(/[\s,.\-?!;:]+/);
+  for (const word of words) {
+    if (word.length >= 4 && Math.abs(word.length - cleanTerm.length) <= 2) {
+      if (getLevenshteinDistance(word, cleanTerm) <= 2) return true;
+    }
+  }
+  return false;
+}
+
 // 6. DSGVO-konformer Analytics-Store mit dezentem Feedback
 class ParacelsusAnalyticsStore {
   constructor() {
@@ -351,7 +421,7 @@ class ParacelsusBotEngine {
       return {
         type: "zuweiser",
         title: "Informationen für einweisende Kolleginnen & Kollegen",
-        message: "Für eine schnelle, unbürokratische Patientenübernahme stehen Ihnen die Chefarztsekretariate und das zentrale Belegungsmanagement zur Verfügung:",
+        message: "Für eine schnelle, unbürokratische Patientenübernahme stehen Ihnen die Fachabteilungen und das zentrale Belegungsmanagement zur Verfügung:",
         zuweiserContacts: [
           { clinic: "Paracelsus Klinik Golzheim Düsseldorf (Urologie)", phone: "+49 211 4385-200", fax: "+49 211 4385-209", note: "Zertifiziertes Prostatakrebszentrum / Robotik" },
           { clinic: "Paracelsus-Elena-Klinik Kassel (Neurologie)", phone: "+49 561 6009-120", fax: "+49 561 6009-129", note: "Parkinson-Komplex & Differentialdiagnostik" },
@@ -438,27 +508,47 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 9. Intelligentes Klinik- & Symptom-Matching
+    // 9. Intelligentes Klinik- & Symptom-Matching (mit Metropolregionen & Fuzzy-Toleranz)
     const scoredClinics = this.standorte.map(clinic => {
       let score = 0;
       const matchedTerms = [];
 
-      if (query.includes(clinic.city.toLowerCase())) {
+      // A. Direkte Stadt-Erkennung (inkl. Tippfehlern)
+      if (query.includes(clinic.city.toLowerCase()) || fuzzyContains(query, clinic.city)) {
         score += 15;
         matchedTerms.push(clinic.city);
       }
+
+      // B. Metropolregionen- & Umland-Erkennung (z.B. Köln/Dortmund -> Düsseldorf, Hamburg -> Henstedt-Ulzburg)
+      const surroundingCities = REGION_MAPPING[clinic.id] || [];
+      for (const city of surroundingCities) {
+        if (query.includes(city) || fuzzyContains(query, city)) {
+          score += 12;
+          matchedTerms.push(`${city.charAt(0).toUpperCase() + city.slice(1)} (Region ${clinic.city})`);
+          break;
+        }
+      }
+
+      // C. Bundesland-Match
       if (query.includes(clinic.state.toLowerCase())) {
         score += 8;
       }
       if (query.includes(clinic.id.split("-")[0])) {
         score += 10;
       }
+
+      // D. Keywords & Laiensynonyme (mit Fuzzy-Toleranz)
       clinic.keywords.forEach(keyword => {
         if (query.includes(keyword.toLowerCase())) {
           score += 7;
           matchedTerms.push(keyword);
+        } else if (fuzzyContains(query, keyword)) {
+          score += 5;
+          matchedTerms.push(keyword);
         }
       });
+
+      // E. Specialties-Match
       clinic.specialties.forEach(spec => {
         if (query.includes(spec.toLowerCase())) {
           score += 9;
@@ -533,8 +623,10 @@ if (typeof window !== "undefined") {
   window.createCalendarEventContent = createCalendarEventContent;
   window.scrubPII = scrubPII;
   window.buildMarketingUrl = buildMarketingUrl;
+  window.REGION_MAPPING = REGION_MAPPING;
+  window.fuzzyContains = fuzzyContains;
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { ParacelsusBotEngine, ParacelsusAnalyticsStore, scrubPII, buildMarketingUrl, createCalendarEventContent, EMERGENCY_CATEGORIES };
+  module.exports = { ParacelsusBotEngine, ParacelsusAnalyticsStore, scrubPII, buildMarketingUrl, createCalendarEventContent, EMERGENCY_CATEGORIES, REGION_MAPPING, fuzzyContains };
 }

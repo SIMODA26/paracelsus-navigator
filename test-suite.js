@@ -199,6 +199,28 @@ runTest("Analytics: Records discreet feedback (Ja, Mäßig, Nein) and calendar d
   assert.strictEqual(analytics.data.calendarDownloads, initialDownloads + 1);
 });
 
+// 11. REGIONAL METROPOLREGION MAPPING
+runTest("Regional Mapping: Surrounding cities route to nearest center", () => {
+  const resKoeln = engine.processQuery("Ich suche eine Prostata-Klinik im Raum Köln oder Dortmund");
+  assert.strictEqual(resKoeln.type, "match");
+  assert.strictEqual(resKoeln.clinic.id, "duesseldorf-golzheim");
+
+  const resHamburg = engine.processQuery("Wo ist die nächste Paracelsus Notaufnahme von Hamburg aus?");
+  assert.strictEqual(resHamburg.type, "match");
+  assert.strictEqual(resHamburg.clinic.id, "henstedt-ulzburg");
+});
+
+// 12. FUZZY MATCHING & TYPO TOLERANCE
+runTest("Fuzzy Matching: Tolerates typos in medical and clinic terms", () => {
+  const resTypoParkinson = engine.processQuery("Spezialbehandlung bei Párkinnson Erkrankung");
+  assert.strictEqual(resTypoParkinson.type, "match");
+  assert.strictEqual(resTypoParkinson.clinic.id, "kassel-elena");
+
+  const resLaypersonKnie = engine.processQuery("Ich brauche dringend ein künstliches Knie");
+  assert.strictEqual(resLaypersonKnie.type, "match");
+  assert(resLaypersonKnie.clinic.id === "bremen" || resLaypersonKnie.clinic.id === "langenhagen-silbersee");
+});
+
 console.log("=================================================");
 console.log(`🏁 TEST RESULT: ${testsPassed} Passed, ${testsFailed} Failed`);
 console.log("=================================================");
