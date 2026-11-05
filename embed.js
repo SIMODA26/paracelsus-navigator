@@ -381,3 +381,4 @@
     console.log("Paracelsus Navigator erfolgreich initialisiert!");
   }
 })();
+

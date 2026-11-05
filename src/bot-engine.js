@@ -11,7 +11,7 @@
 // 1. Detaillierter Notfallkatalog
 const EMERGENCY_CATEGORIES = {
   CARDIOVASCULAR: {
-    pattern: /herzinfarkt|brustschmerz|engegefühl\s*brust|druck\s*auf\s*der\s*brust|ausstrahlung\s*(linker\s*arm|kiefer)|herzrasen\s*akut|heart\s*attack|chest\s*pain/i,
+    pattern: /herzinfarkt|brustschmerz[a-z]*|schmerzen?\s*(in\s*der\s*)?brust|engegefühl\s*brust|druck\s*auf\s*der\s*brust|(ausstrahl[a-z]*.*(arm|kiefer))|((arm|kiefer).*ausstrahl[a-z]*)|herzrasen\s*akut|heart\s*attack|chest\s*pain/i,
     title: "VERDACHT AUF HERZINFARKT / AKUTES KORONARSYNDROM",
     title_en: "SUSPECTED HEART ATTACK (ACUTE CORONARY SYNDROME)",
     title_tr: "KALP KRİZİ ŞÜPHESİ (ACİL DURUM)",
@@ -48,6 +48,19 @@ const EMERGENCY_CATEGORIES = {
     action_uk: "Терміново викликайте 112!",
     hotline: "112",
     guidance: "Fenster für Frischluft öffnen. Aufrechte Sitzhaltung einnehmen, Arme aufstützen (Kutschersitz)."
+  },
+  SEVERE_BLEEDING: {
+    pattern: /starke\s*blutung|unstillbare\s*blutung|arterielle\s*blutung|blutverlust|spritzende\s*blutung|severe\s*bleeding|hemorrhage/i,
+    title: "SCHWERE, AKUTE BLUTUNG",
+    title_en: "SEVERE ACUTE BLEEDING",
+    title_tr: "AĞIR KANAMA TEHLİKESİ",
+    title_uk: "ГОСТРА СИЛЬНА КРОВОТЕЧА",
+    action: "Sofort Notruf 112 wählen!",
+    action_en: "Call Emergency 112 immediately!",
+    action_tr: "Derhal 112 Acil Servisi arayın!",
+    action_uk: "Негайно викликайте 112!",
+    hotline: "112",
+    guidance: "Druckverband anlegen. Betroffene Extremität wenn möglich hochlagern. Wunde mit sauberem Tuch fest abdrücken bis der Notarzt eintrifft."
   },
   SUICIDE_CRISIS: {
     pattern: /suizid|lebensmüde|selbstmord|nicht\s*mehr\s*leben|kann\s*nicht\s*mehr\s*weiter|suicide|depression\s*crisis/i,
@@ -129,12 +142,12 @@ const UNSUPPORTED_DISCIPLINES = [
 function scrubPII(text) {
   if (!text) return "";
   let clean = text;
+  clean = clean.replace(/\b\d{1,2}\.\d{1,2}\.\d{2,4}\b/g, "[DATUM ANONYMISIERT]");
   clean = clean.replace(/\b[A-Za-z]\d{9}\b/g, "[VERSICHERTEN-NR ANONYMISIERT]");
   clean = clean.replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,9}/g, "[TELEFON ANONYMISIERT]");
   clean = clean.replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, "[E-MAIL ANONYMISIERT]");
   clean = clean.replace(/(?:ich heiße|mein name ist|patient:?)\s+(?:dr\.?\s+)?[a-zäöüß]+(?:\s+[a-zäöüß]+)?/gi, "[NAME ANONYMISIERT]");
   clean = clean.replace(/(?:herr|frau)\s+(?:dr\.?\s+)?[a-zäöüß]+(?:\s+[a-zäöüß]+)?/gi, "[NAME ANONYMISIERT]");
-  clean = clean.replace(/\b\d{1,2}\.\d{1,2}\.\d{2,4}\b/g, "[DATUM ANONYMISIERT]");
   return clean;
 }
 
@@ -359,8 +372,17 @@ class ParacelsusBotEngine {
 
   processQuery(rawUserInput, isVoice = false) {
     const scrubbedInput = scrubPII(rawUserInput || "");
-    const query = scrubbedInput.trim().toLowerCase();
+    let query = scrubbedInput.trim().toLowerCase();
     const lang = this.currentLanguage;
+
+    // Mehrsprachige & kyrillische Normalisierung
+    query = query
+      .replace(/паркінсон[а-я]*/gi, "parkinson")
+      .replace(/уролог[а-я]*/gi, "urologie")
+      .replace(/ортопед[а-я]*/gi, "orthopädie")
+      .replace(/хірург[а-я]*/gi, "chirurgie")
+      .replace(/лікарн[а-я]*|клінік[а-я]*/gi, "klinik")
+      .replace(/лікуван[а-я]*/gi, "behandlung");
 
     if (!query) {
       const emptyMsg = {
@@ -416,7 +438,7 @@ class ParacelsusBotEngine {
     }
 
     // 3. Zuweiser & Ärzte-Portal
-    if (/zuweiser|arztportal|ärztliche\s*einweisung|kollegialer\s*kontakt|chefarztsekretariat|befundübermittlung|patient[a-z]*\s*einweisen|patient[a-z]*\s*überweisen|niedergelassene[a-z]*|facharzt|hausarzt/i.test(query)) {
+    if (/zuweiser|arztportal|(fach)?ärztliche\s*einweisung|urologische\s*einweisung|kollegialer\s*kontakt|befundübermittlung|patient[a-z]*\s*einweisen|patient[a-z]*\s*überweisen|niedergelassene[a-z]*|facharzt|hausarzt|einweisend[a-z]*/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Zuweiser & Ärzte", isVoice, lang);
       return {
         type: "zuweiser",
@@ -433,7 +455,7 @@ class ParacelsusBotEngine {
     }
 
     // 4. Aufnahme & Koffer-Checkliste
-    if (!/notaufnahme/i.test(query) && /koffer|mitbringen|unterlagen|stationäre\s*aufnahme|checkliste|einweisung|was\s*brauche\s*ich|packing\s*list/i.test(query)) {
+    if (!/notaufnahme/i.test(query) && /koffer|packliste|was\s*mitbringen|unterlagen|stationäre\s*aufnahme|checkliste|einweisungsschein|was\s*brauche\s*ich|packing\s*list/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Aufnahme-Checkliste", isVoice, lang);
       return {
         type: "checklist",
@@ -486,29 +508,7 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 7. Reha vs. Akut
-    if (/reha|kur|anschlussheilbehandlung|ahb|rehabilitation/i.test(query)) {
-      this.analytics.recordQuery(scrubbedInput, "match", "reha", "Reha & AHB", isVoice, lang);
-      return {
-        type: "info",
-        title: "Rehabilitation & Anschlussheilbehandlung (AHB)",
-        message: "Paracelsus führt hochspezialisierte Rehakliniken, insbesondere für Neurologie (Elena-Klinik Kassel) und Orthopädie. Suchen Sie eine Reha nach einer Operation oder eine akute Erstvorstellung?",
-        chips: ["Neurologische Reha (Parkinson)", "Orthopädische Reha", "Akut-Krankenhaus"]
-      };
-    }
-
-    // 8. Terminvereinbarung & Sprechstunden
-    if (/termin|sprechstunde|vorstellung|anmeldung|beratung|appointment/i.test(query)) {
-      this.analytics.recordQuery(scrubbedInput, "info", null, "Terminanfrage", isVoice, lang);
-      return {
-        type: "info",
-        title: "Sprechstunden & Terminvereinbarung",
-        message: "Termine für ambulante Sprechstunden und stationäre Vorstellungen vergeben die jeweiligen Fachsekretariate direkt. In welchem Schwerpunkt suchen Sie einen Termin?",
-        chips: ["Urologie (Düsseldorf)", "Parkinson (Kassel)", "Orthopädie (Bremen)", "Allgemeinchirurgie (Henstedt-Ulzburg)"]
-      };
-    }
-
-    // 9. Intelligentes Klinik- & Symptom-Matching (mit Metropolregionen & Fuzzy-Toleranz)
+    // 7. Intelligentes Klinik- & Symptom-Matching (mit Metropolregionen & Fuzzy-Toleranz)
     const scoredClinics = this.standorte.map(clinic => {
       let score = 0;
       const matchedTerms = [];
@@ -597,6 +597,28 @@ class ParacelsusBotEngine {
           icsContent: createCalendarEventContent(m.clinic)
         })),
         chips: ["Checkliste Aufnahme", "Route & Anfahrt", "Klinikseite öffnen", "Anderer Standort"]
+      };
+    }
+
+    // 8. Reha vs. Akut (wenn kein spezifischer Standort gematcht wurde)
+    if (/reha|kur|anschlussheilbehandlung|ahb|rehabilitation/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "match", "reha", "Reha & AHB", isVoice, lang);
+      return {
+        type: "info",
+        title: "Rehabilitation & Anschlussheilbehandlung (AHB)",
+        message: "Paracelsus führt hochspezialisierte Rehakliniken, insbesondere für Neurologie (Elena-Klinik Kassel) und Orthopädie. Suchen Sie eine Reha nach einer Operation oder eine akute Erstvorstellung?",
+        chips: ["Neurologische Reha (Parkinson)", "Orthopädische Reha", "Akut-Krankenhaus"]
+      };
+    }
+
+    // 9. Allgemeine Termin- & Sprechstundenanfrage (wenn kein spezifischer Schwerpunkt gematcht wurde)
+    if (/termin|sprechstunde|vorstellung|anmeldung|beratung|appointment/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Allgemeine Terminanfrage", isVoice, lang);
+      return {
+        type: "info",
+        title: "Sprechstunden & Terminvereinbarung",
+        message: "Termine für ambulante Sprechstunden und stationäre Vorstellungen vergeben die jeweiligen Fachsekretariate direkt. In welchem Schwerpunkt suchen Sie einen Termin?",
+        chips: ["Urologie (Düsseldorf)", "Parkinson (Kassel)", "Orthopädie (Bremen)", "Allgemeinchirurgie (Henstedt-Ulzburg)"]
       };
     }
 

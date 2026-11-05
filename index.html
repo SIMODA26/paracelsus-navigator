@@ -74,27 +74,9 @@
       <p class="hero-quote">
         „Gesundheitsversorgung verändert sich – und wir gestalten diesen Wandel aktiv. Paracelsus steht für Medizin, die Menschen versteht: fachlich stark, menschlich nah, fortschrittlich im Denken. Unser Ziel: der Ort, an dem außergewöhnliche Köpfe ihr Bestes geben.“
       </p>
-
-      <!-- Quick Finder Search -->
-      <div class="quick-finder-bar">
-        <input 
-          type="text" 
-          id="heroSearchInput" 
-          placeholder="Wonach suchen Sie? (z.B. Parkinson, DaVinci Roboter, Düsseldorf, neues Knie, Notaufnahme...)"
-          onkeydown="if(event.key==='Enter') triggerSearchFromHero()"
-          aria-label="Suchbegriff eingeben"
-        >
-        <button class="quick-finder-btn" onclick="triggerSearchFromHero()">Klinik finden &rarr;</button>
-      </div>
-
-      <!-- Quick Filter Chips -->
-      <div class="hero-quick-chips">
-        <span class="quick-chips-label">Häufig gesucht:</span>
-        <button class="hero-chip" onclick="openWithQuery('Parkinson Spezialklinik Kassel')">🧠 Parkinson (Kassel)</button>
-        <button class="hero-chip" onclick="openWithQuery('DaVinci Roboter Prostata Düsseldorf')">🤖 DaVinci Urologie (Düsseldorf)</button>
-        <button class="hero-chip" onclick="openWithQuery('Orthopädie neues Knie Bremen')">🦴 Knie & Hüfte (Bremen)</button>
-        <button class="hero-chip" onclick="openWithQuery('Notaufnahme 24/7 Henstedt-Ulzburg')">🚨 Notaufnahme (Henstedt-Ulzburg)</button>
-        <button class="hero-chip" onclick="openWithQuery('Koffer Packliste')">📋 Koffer-Packliste</button>
+      <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-top: 10px;">
+        <a href="#standorte" class="quick-finder-btn" style="text-decoration: none; display: inline-flex; align-items: center; gap: 6px;">Standorte entdecken &rarr;</a>
+        <button type="button" onclick="toggleChat(true)" class="site-btn-nav" style="font-size: 14px; padding: 12px 22px;">💬 Digitaler Wegweiser</button>
       </div>
     </div>
   </section>
@@ -328,8 +310,8 @@
     </div>
   </button>
 
-  <!-- 2. Chatbot Drawer Window -->
-  <div class="paracelsus-chat-window" id="chatWindow" role="dialog" aria-modal="true" aria-labelledby="chatHeaderTitle">
+  <!-- 2. Chatbot Drawer Window (Kompaktes schwebendes Popup) -->
+  <div class="paracelsus-chat-window closed" id="chatWindow" role="dialog" aria-modal="true" aria-labelledby="chatHeaderTitle">
     
     <!-- Widget Header with Accessibility & Language Controls -->
     <div class="pc-header">
