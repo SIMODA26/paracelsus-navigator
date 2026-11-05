@@ -1050,6 +1050,176 @@ body {
   color: white;
 }
 
+/* ==========================================================================
+   Accessibility & Senioren-Modus (A- / A / A+)
+   ========================================================================== */
+.font-size-large .pc-msg {
+  font-size: 15.5px !important;
+  line-height: 1.55 !important;
+}
+
+.font-size-large .pc-chip {
+  font-size: 13.5px !important;
+  padding: 8px 16px !important;
+}
+
+.font-size-xlarge .pc-msg {
+  font-size: 17.5px !important;
+  line-height: 1.65 !important;
+}
+
+.font-size-xlarge .pc-chip {
+  font-size: 15px !important;
+  padding: 10px 18px !important;
+}
+
+.pc-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pc-lang-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(149, 200, 186, 0.4);
+  color: var(--weiss);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pc-lang-btn.active, .pc-lang-btn:hover {
+  background-color: var(--tuerkis);
+  color: var(--gruen);
+}
+
+.pc-font-btn {
+  background: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(149, 200, 186, 0.4);
+  color: var(--weiss);
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 6px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pc-font-btn:hover {
+  background-color: var(--tuerkis);
+  color: var(--gruen);
+}
+
+/* ==========================================================================
+   Text-to-Speech (Vorlese-Funktion)
+   ========================================================================== */
+.pc-tts-btn {
+  background: none;
+  border: none;
+  color: var(--salbei);
+  cursor: pointer;
+  padding: 2px 5px;
+  border-radius: 4px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.pc-tts-btn:hover {
+  color: var(--gruen);
+  background: rgba(149, 200, 186, 0.25);
+}
+
+.pc-tts-btn.speaking {
+  color: #d32f2f;
+  animation: pulseRecording 1.2s infinite ease-in-out;
+}
+
+/* ==========================================================================
+   Interaktive Koffer-Packliste & Checkliste mit Fortschrittsbalken
+   ========================================================================== */
+.pc-checklist-wrapper {
+  margin-top: 10px;
+  background: #f7faf9;
+  border: 1px solid var(--tuerkis);
+  border-radius: 14px;
+  padding: 14px;
+}
+
+.pc-checklist-progress-bar {
+  background: #e0ece8;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin: 8px 0 12px;
+}
+
+.pc-checklist-progress-fill {
+  background: var(--salbei);
+  height: 100%;
+  width: 0%;
+  transition: width 0.3s ease;
+}
+
+.pc-check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  font-size: 12.5px;
+  line-height: 1.4;
+  user-select: none;
+}
+
+.pc-check-item input[type="checkbox"] {
+  width: 17px;
+  height: 17px;
+  accent-color: var(--gruen);
+  cursor: pointer;
+  margin-top: 2px;
+}
+
+.pc-check-item.checked span {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+
+/* ==========================================================================
+   Zuweiser- & Facharzt-Karten
+   ========================================================================== */
+.pc-zuweiser-card {
+  margin-top: 10px;
+  background: #f0f7f5;
+  border-left: 4px solid var(--salbei);
+  border-radius: 8px;
+  padding: 12px 14px;
+  font-size: 12px;
+}
+
+.pc-zuweiser-clinic {
+  font-weight: 700;
+  color: var(--gruen);
+  font-size: 13px;
+  margin-bottom: 4px;
+}
+
+.pc-zuweiser-details {
+  display: flex;
+  gap: 12px;
+  color: #3b5758;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
 .gap-pill {
   display: inline-block;
   background: #fdf2e9;

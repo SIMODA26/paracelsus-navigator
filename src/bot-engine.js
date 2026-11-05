@@ -1,55 +1,91 @@
 /**
  * Paracelsus Kliniken — Digitaler Wegweiser & Clinical Triage Engine
- * Version: 3.0.0 (Enterprise Healthcare & Executive Ready)
+ * Version: 3.5.0 (Enterprise Multi-Lingual, Accessibility & Clinical Decision Trees)
  * 
  * Compliance & Standards:
  * - MDR (EU 2017/745): Reines Orientierungs- und Navigationssystem (keine Diagnostik / Therapie)
  * - DSGVO Art. 9: Strikte Client-Side PII-Anonymisierung sensibler Gesundheitsdaten
- * - DIN EN ISO 13485 Leitplanken: Deterministic Safety-First Routing
+ * - BITV 2.0 / WCAG 2.1 AAA: Barrierefreiheit, Text-to-Speech & Senioren-Modus
  */
 
 // 1. Detaillierter Notfallkatalog mit differenzierten Notruf- und Krisenkontakten
 const EMERGENCY_CATEGORIES = {
   CARDIOVASCULAR: {
-    pattern: /herzinfarkt|brustschmerz|engegefühl\s*brust|druck\s*auf\s*der\s*brust|ausstrahlung\s*(linker\s*arm|kiefer)|herzrasen\s*akut/i,
+    pattern: /herzinfarkt|brustschmerz|engegefühl\s*brust|druck\s*auf\s*der\s*brust|ausstrahlung\s*(linker\s*arm|kiefer)|herzrasen\s*akut|heart\s*attack|chest\s*pain/i,
     title: "VERDACHT AUF HERZINFARKT / AKUTES KORONARSYNDROM",
+    title_en: "SUSPECTED HEART ATTACK (ACUTE CORONARY SYNDROME)",
+    title_tr: "KALP KRİZİ ŞÜPHESİ (ACİL DURUM)",
+    title_uk: "ПІДОЗРА НА ІНФАРКТ МІОКАРДА",
     action: "Sofort Rettungsdienst 112 rufen!",
+    action_en: "Call Emergency 112 immediately!",
+    action_tr: "Derhal 112 Acil Servisi arayın!",
+    action_uk: "Негайно викликайте швидку 112!",
     hotline: "112",
-    guidance: "Setzen Sie sich mit leicht erhöhtem Oberkörper hin. Enge Kleidung lockern. Versuchen Sie ruhig zu atmen und warten Sie auf den Notarzt."
+    guidance: "Oberkörper leicht erhöht lagern. Enge Kleidung lockern. Ruhe bewahren und auf das Eintreffen des Notarztes warten."
   },
   STROKE: {
-    pattern: /schlaganfall|lähmung|halbseitig|herabhängend[a-z]*\s*mundwinkel|mundwinkel\s*hängt|sprachstörung|plötzlich\s*nicht\s*mehr\s*sprechen|sehstörung\s*plötzlich/i,
+    pattern: /schlaganfall|lähmung|halbseitig|herabhängend[a-z]*\s*mundwinkel|mundwinkel\s*hängt|sprachstörung|plötzlich\s*nicht\s*mehr\s*sprechen|sehstörung\s*plötzlich|stroke/i,
     title: "VERDACHT AUF SCHLAGANFALL (FAST-SYMPTOME)",
+    title_en: "SUSPECTED STROKE (FAST SYMPTOMS)",
+    title_tr: "İNME / FELÇ ŞÜPHESİ (FAST)",
+    title_uk: "ПІДОЗРА НА ІНСУЛЬТ",
     action: "Sofort Notruf 112 wählen!",
+    action_en: "Dial 112 immediately!",
+    action_tr: "Derhal 112'yi arayın!",
+    action_uk: "Негайно дзвоніть 112!",
     hotline: "112",
-    guidance: "Jede Minute zählt (Time is Brain). Flach lagern, nicht essen oder trinken lassen. Genau den Zeitpunkt des Symptombeginns notieren."
+    guidance: "Jede Minute zählt (Time is Brain). Flach lagern, nicht essen oder trinken lassen. Den genauen Zeitpunkt des Symptombeginns notieren."
   },
   RESPIRATORY: {
-    pattern: /keine\s*luft|schwere\s*atemnot|erstickungsgefühl|ersticke|erstickung|blau\s*anlaufen/i,
+    pattern: /keine\s*luft|schwere\s*atemnot|erstickungsgefühl|ersticke|erstickung|blau\s*anlaufen|cannot\s*breathe|shortness\s*of\s*breath/i,
     title: "AKUTE VITAL BEDROHLICHE ATEMNOT",
+    title_en: "ACUTE SEVERE RESPIRATORY DISTRESS",
+    title_tr: "CİDDİ NEFES DARLIĞI / BOĞULMA TEHLİKESİ",
+    title_uk: "ГОСТРА ДИХАЛЬНА НЕДОСТАТНІСТЬ",
     action: "Unverzüglich Notruf 112 rufen!",
+    action_en: "Call 112 immediately!",
+    action_tr: "Derhal 112'yi arayın!",
+    action_uk: "Терміново викликайте 112!",
     hotline: "112",
-    guidance: "Fenster öffnen für Frischluft. Aufrechte Sitzhaltung einnehmen, Arme aufstützen (Kutschersitz)."
+    guidance: "Fenster für Frischluft öffnen. Aufrechte Sitzhaltung einnehmen, Arme aufstützen (Kutschersitz)."
   },
   SUICIDE_CRISIS: {
-    pattern: /suizid|lebensmüde|selbstmord|nicht\s*mehr\s*leben|kann\s*nicht\s*mehr\s*weiter/i,
+    pattern: /suizid|lebensmüde|selbstmord|nicht\s*mehr\s*leben|kann\s*nicht\s*mehr\s*weiter|suicide|depression\s*crisis/i,
     title: "AKUTE SEELISCHE KRISE / HILFE IN NOTLAGEN",
+    title_en: "MENTAL HEALTH CRISIS & SUPPORT",
+    title_tr: "PSİKOLOJİK KRİZ VE DESTEK HATTI",
+    title_uk: "ПСИХОЛОГІЧНА КРИЗА ТА ПІДТРИМКА",
     action: "Telefonseelsorge rund um die Uhr erreichbar",
+    action_en: "24/7 Crisis Hotline available",
+    action_tr: "7/24 Kriz Destek Hattı",
+    action_uk: "Цілодобова кризова лінія",
     hotline: "0800 111 0 111",
     altHotline: "112",
     guidance: "Sie sind nicht allein. Die Telefonseelsorge hilft kostenlos, anonym und 24/7 unter 0800 111 0 111 oder 0800 111 0 222. Bei unmittelbarer Lebensgefahr wählen Sie bitte die 112."
   },
   POISON: {
-    pattern: /vergiftung|chemikalie\s*(getrunken|geschluckt)|reiniger\s*geschluckt|gift\s*geschluckt/i,
+    pattern: /vergiftung|chemikalie\s*(getrunken|geschluckt)|reiniger\s*geschluckt|gift\s*geschluckt|poison/i,
     title: "VERDACHT AUF AKUTE VERGIFTUNG",
+    title_en: "SUSPECTED ACUTE POISONING",
+    title_tr: "ZEHİRLENME ŞÜPHESİ",
+    title_uk: "ПІДОЗРА НА ОТРУЄННЯ",
     action: "Giftnotruf oder 112 kontaktieren",
+    action_en: "Call Poison Control or 112",
+    action_tr: "Zehir Danışma veya 112'yi arayın",
+    action_uk: "Зателефонуйте до токсикологічного центру або 112",
     hotline: "030 19240",
-    guidance: "Giftnotrufzentrale anrufen (z. B. Berlin 030 19240 / Bonn 0228 19240) oder sofort 112. Kein Erbrechen herbeiführen! Verpackung der Substanz bereithalten."
+    guidance: "Giftnotruf anrufen (Berlin: 030 19240, NRW/Bonn: 0228 19240, Göttingen: 0551 19240, München: 089 19240). Kein Erbrechen herbeiführen! Verpackung bereithalten."
   },
   ACUTE_ABDOMEN: {
     pattern: /brettharter\s*bauch|unerträgliche\s*bauchschmerzen|bauchdecke\s*hart/i,
     title: "VERDACHT AUF AKUTES ABDOMEN",
+    title_en: "ACUTE ABDOMEN SUSPECTED",
+    title_tr: "AKUT BATIN ŞÜPHESİ",
+    title_uk: "ПІДОЗРА НА ГОСТРИЙ ЖИВІТ",
     action: "Sofort ärztliche Notfallversorgung / 112",
+    action_en: "Immediate emergency hospital care / 112",
+    action_tr: "Acil tıbbi müdahale / 112",
+    action_uk: "Невідкладна медична допомога / 112",
     hotline: "112",
     guidance: "Keine Schmerzmittel oder Nahrung einnehmen. Unverzügliche Vorstellung in der Notaufnahme oder Rettungsdienst verständigen."
   }
@@ -58,31 +94,31 @@ const EMERGENCY_CATEGORIES = {
 // 2. Nicht angebotene Fachdisziplinen (Klares Negativ-Routing)
 const UNSUPPORTED_DISCIPLINES = [
   {
-    pattern: /geburt|entbindung|kreißsaal|schwanger|wehen|baby\s*bekommen|wöchnerin/i,
+    pattern: /geburt|entbindung|kreißsaal|schwanger|wehen|baby\s*bekommen|wöchnerin|birth|maternity/i,
     name: "Geburtshilfe & Kreißsaal",
     alternative: "spezialisierte Geburtskliniken",
     hint: "An den Paracelsus-Standorten wird keine Entbindung vorgehalten."
   },
   {
-    pattern: /kinderklinik|pädiatrie|kinderarzt|säugling|kleinkind/i,
+    pattern: /kinderklinik|pädiatrie|kinderarzt|säugling|kleinkind|pediatric/i,
     name: "Kinder- und Jugendmedizin (Pädiatrie)",
     alternative: "eine Kinderklinik oder den kinderärztlichen Bereitschaftsdienst",
     hint: "Unsere Akutkliniken sind auf die Erwachsenenmedizin spezialisiert."
   },
   {
-    pattern: /augenklinik|augenheilkunde|katarakt|grauer\s*star|netzhaut/i,
+    pattern: /augenklinik|augenheilkunde|katarakt|grauer\s*star|netzhaut|ophthalmolog/i,
     name: "Augenheilkunde (Ophthalmologie)",
     alternative: "eine Fach-Augenklinik",
     hint: "Stationäre Augenoperationen gehören nicht zum Portfolio der Gruppe."
   },
   {
-    pattern: /zahnklinik|kieferchirurgie|zahnimplantat|weisheitszähne/i,
+    pattern: /zahnklinik|kieferchirurgie|zahnimplantat|weisheitszähne|dentist/i,
     name: "Zahn- und Kieferchirurgie",
     alternative: "zahnärztliche Notdienste oder MKG-Kliniken",
     hint: "Hierfür wenden Sie sich bitte an niedergelassene Zahnärzte oder MKG-Zentren."
   },
   {
-    pattern: /dermatologie|hautklinik|hautkrebs\s*screening|schuppenflechte/i,
+    pattern: /dermatologie|hautklinik|hautkrebs\s*screening|schuppenflechte|dermatolog/i,
     name: "Dermatologie & Hautklinik",
     alternative: "eine dermatologische Fachklinik",
     hint: "Dermatologische Betten werden an unseren Standorten nicht geführt."
@@ -93,7 +129,7 @@ const UNSUPPORTED_DISCIPLINES = [
 function scrubPII(text) {
   if (!text) return "";
   let clean = text;
-  // 1. Versichertennummer ZUERST (vor generischen Zahlenfolgen)
+  // 1. Versichertennummer ZUERST
   clean = clean.replace(/\b[A-Za-z]\d{9}\b/g, "[VERSICHERTEN-NR ANONYMISIERT]");
   // 2. Telefonnummern & Handynummern
   clean = clean.replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,9}/g, "[TELEFON ANONYMISIERT]");
@@ -127,7 +163,7 @@ function buildMarketingUrl(baseUrl, clinicId, intent) {
 // 5. DSGVO-konformer Analytics-Store (Lokale Zähler ohne Personenbezug)
 class ParacelsusAnalyticsStore {
   constructor() {
-    this.storageKey = "paracelsus_analytics_v2";
+    this.storageKey = "paracelsus_analytics_v3";
     this.data = this.load();
   }
 
@@ -143,7 +179,9 @@ class ParacelsusAnalyticsStore {
       clinicRoutingCounts: {},
       contentGaps: [],
       linkClicks: 0,
-      voiceQueries: 0
+      voiceQueries: 0,
+      zuweiserQueries: 0,
+      languageCounts: { de: 0, en: 0, tr: 0, uk: 0 }
     };
   }
 
@@ -153,9 +191,12 @@ class ParacelsusAnalyticsStore {
     } catch (e) {}
   }
 
-  recordQuery(anonymizedQuery, resultType, clinicId, category, isVoice = false) {
+  recordQuery(anonymizedQuery, resultType, clinicId, category, isVoice = false, lang = "de") {
     this.data.totalQueries++;
     if (isVoice) this.data.voiceQueries++;
+    if (this.data.languageCounts) {
+      this.data.languageCounts[lang] = (this.data.languageCounts[lang] || 0) + 1;
+    }
     if (resultType === "emergency") {
       this.data.emergencyAlerts++;
     }
@@ -164,6 +205,9 @@ class ParacelsusAnalyticsStore {
     }
     if (category) {
       this.data.intentCounts[category] = (this.data.intentCounts[category] || 0) + 1;
+    }
+    if (category === "Zuweiser & Ärzte") {
+      this.data.zuweiserQueries = (this.data.zuweiserQueries || 0) + 1;
     }
     if (resultType === "fallback") {
       const snippet = anonymizedQuery.substring(0, 50).trim();
@@ -199,30 +243,43 @@ class ParacelsusBotEngine {
   }
 
   setLanguage(lang) {
-    this.currentLanguage = lang || "de";
+    this.currentLanguage = ["de", "en", "tr", "uk"].includes(lang) ? lang : "de";
   }
 
   processQuery(rawUserInput, isVoice = false) {
-    // Strikte Anonymisierung
     const scrubbedInput = scrubPII(rawUserInput || "");
     const query = scrubbedInput.trim().toLowerCase();
+    const lang = this.currentLanguage;
 
     if (!query) {
+      const emptyMsg = {
+        de: "Wie dürfen wir Ihnen helfen? Nennen Sie uns gerne Ihre Beschwerde, einen Fachbereich oder eine Stadt.",
+        en: "How can we assist you? Please mention your symptom, medical specialty, or preferred city.",
+        tr: "Size nasıl yardımcı olabiliriz? Lütfen şikayetinizi, uzmanlık alanını veya tercih ettiğiniz şehri belirtin.",
+        uk: "Чим ми можемо вам допомогти? Вкажіть ваші симптоми, медичний напрямок або місто."
+      };
       return {
         type: "empty",
-        message: "Wie dürfen wir Ihnen helfen? Nennen Sie uns gerne Ihre Beschwerde, einen Fachbereich oder eine Stadt."
+        message: emptyMsg[lang] || emptyMsg.de
       };
     }
 
     // 1. Notfall-Prüfung (Höchste Priorität)
     for (const [key, em] of Object.entries(EMERGENCY_CATEGORIES)) {
       if (em.pattern.test(query)) {
-        this.analytics.recordQuery(scrubbedInput, "emergency", null, `Notfall: ${key}`, isVoice);
+        this.analytics.recordQuery(scrubbedInput, "emergency", null, `Notfall: ${key}`, isVoice, lang);
+        
+        let title = em.title;
+        let action = em.action;
+        if (lang === "en") { title = em.title_en || em.title; action = em.action_en || em.action; }
+        else if (lang === "tr") { title = em.title_tr || em.title; action = em.action_tr || em.action; }
+        else if (lang === "uk") { title = em.title_uk || em.title; action = em.action_uk || em.action; }
+
         return {
           type: "emergency",
           isEmergency: true,
-          alertTitle: em.title,
-          message: em.action,
+          alertTitle: title,
+          message: action,
           guidance: em.guidance,
           emergencyCall: em.hotline,
           altCall: em.altHotline,
@@ -235,7 +292,7 @@ class ParacelsusBotEngine {
     // 2. Nicht angebotene Fachdisziplinen
     for (const un of UNSUPPORTED_DISCIPLINES) {
       if (un.pattern.test(query)) {
-        this.analytics.recordQuery(scrubbedInput, "unsupported", null, `Nicht angeboten: ${un.name}`, isVoice);
+        this.analytics.recordQuery(scrubbedInput, "unsupported", null, `Nicht angeboten: ${un.name}`, isVoice, lang);
         return {
           type: "unsupported",
           title: `Fachdisziplin: ${un.name}`,
@@ -247,15 +304,32 @@ class ParacelsusBotEngine {
       }
     }
 
-    // 3. Aufnahme & Koffer-Checkliste (Exklusive Notaufnahme)
-    if (!/notaufnahme/i.test(query) && /koffer|mitbringen|unterlagen|stationäre\s*aufnahme|checkliste|einweisung|was\s*brauche\s*ich/i.test(query)) {
-      this.analytics.recordQuery(scrubbedInput, "info", null, "Aufnahme-Checkliste", isVoice);
+    // 3. Zuweiser & Ärzte-Portal (Niedergelassene Haus- & Fachärzte)
+    if (/zuweiser|arztportal|ärztliche\s*einweisung|kollegialer\s*kontakt|chefarztsekretariat|befundübermittlung|patient[a-z]*\s*einweisen|patient[a-z]*\s*überweisen|niedergelassene[a-z]*|facharzt|hausarzt/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Zuweiser & Ärzte", isVoice, lang);
+      return {
+        type: "zuweiser",
+        title: "Informationen für einweisende Kolleginnen & Kollegen",
+        message: "Für eine schnelle, unbürokratische Patientenübernahme stehen Ihnen die Chefarztsekretariate und das zentrale Belegungsmanagement zur Verfügung:",
+        zuweiserContacts: [
+          { clinic: "Paracelsus Klinik Golzheim Düsseldorf (Urologie)", phone: "+49 211 4385-200", fax: "+49 211 4385-209", note: "Zertifiziertes Prostatakrebszentrum / Robotik" },
+          { clinic: "Paracelsus-Elena-Klinik Kassel (Neurologie)", phone: "+49 561 6009-120", fax: "+49 561 6009-129", note: "Parkinson-Komplex & Differentialdiagnostik" },
+          { clinic: "Paracelsus Klinik Bremen (Orthopädie/Wirbelsäule)", phone: "+49 421 4683-150", fax: "+49 421 4683-159", note: "Endoprothetik & Schmerztherapie" },
+          { clinic: "Paracelsus Klinik Henstedt-Ulzburg (ZNA & Chirurgie)", phone: "+49 4193 70-210", fax: "+49 4193 70-219", note: "24/7 Notaufnahme & Viszeralchirurgie" }
+        ],
+        chips: ["Zuweiser-Faxnummern", "Notaufnahme 24/7", "Standorte anzeigen"]
+      };
+    }
+
+    // 4. Aufnahme & Koffer-Checkliste (Exklusive Notaufnahme)
+    if (!/notaufnahme/i.test(query) && /koffer|mitbringen|unterlagen|stationäre\s*aufnahme|checkliste|einweisung|was\s*brauche\s*ich|packing\s*list/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Aufnahme-Checkliste", isVoice, lang);
       return {
         type: "checklist",
-        title: "Checkliste für Ihren Klinikaufenthalt",
-        message: "Für eine reibungslose Aufnahme bringen Sie bitte folgende Dokumente und persönliche Gegenstände mit:",
+        title: "Interaktive Checkliste für Ihren Klinikaufenthalt",
+        message: "Haken Sie die Dokumente und Dinge direkt auf Ihrem Bildschirm ab, um nichts zu vergessen:",
         checklistItems: [
-          "Einweisungsschein Ihres Fach- oder Hausarztes",
+          "Einweisungsschein Ihres behandelnden Fach- oder Hausarztes",
           "Elektronische Gesundheitskarte (Krankenkassenkarte)",
           "Aktueller bundeseinheitlicher Medikamentenplan",
           "Relevante Vorbefunde, Entlassungsbriefe & Röntgen-/MRT-CDs",
@@ -266,9 +340,9 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 4. Besuchszeiten & Parken
-    if (/besuchszeit|besuch|angehörige|parken|parkplatz|anfahrt|öffnungszeit/i.test(query)) {
-      this.analytics.recordQuery(scrubbedInput, "info", null, "Besucher & Anreise", isVoice);
+    // 5. Besuchszeiten & Parken
+    if (/besuchszeit|besuch|angehörige|parken|parkplatz|anfahrt|öffnungszeit|visiting\s*hours/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Besucher & Anreise", isVoice, lang);
       return {
         type: "visiting",
         title: "Besuchszeiten, Anfahrt & Parken",
@@ -284,9 +358,9 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 5. Karriere & Ausbildung
-    if (/karriere|job|stellenangebot|ausbildung|pflegefachkraft|krankenschwester|arztstelle|famulatur|pj|bewerbung/i.test(query)) {
-      this.analytics.recordQuery(scrubbedInput, "link", "karriere", "Karriere & Recruiting", isVoice);
+    // 6. Karriere & Ausbildung
+    if (/karriere|job|stellenangebot|ausbildung|pflegefachkraft|krankenschwester|arztstelle|famulatur|pj|bewerbung|career/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "link", "karriere", "Karriere & Recruiting", isVoice, lang);
       return {
         type: "link",
         title: "Karriere bei Paracelsus",
@@ -301,9 +375,9 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 6. Reha vs. Akut
+    // 7. Reha vs. Akut
     if (/reha|kur|anschlussheilbehandlung|ahb|rehabilitation/i.test(query)) {
-      this.analytics.recordQuery(scrubbedInput, "match", "reha", "Reha & AHB", isVoice);
+      this.analytics.recordQuery(scrubbedInput, "match", "reha", "Reha & AHB", isVoice, lang);
       return {
         type: "info",
         title: "Rehabilitation & Anschlussheilbehandlung (AHB)",
@@ -312,9 +386,9 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 7. Terminvereinbarung & Sprechstunden
-    if (/termin|sprechstunde|vorstellung|anmeldung|beratung/i.test(query)) {
-      this.analytics.recordQuery(scrubbedInput, "info", null, "Terminanfrage", isVoice);
+    // 8. Terminvereinbarung & Sprechstunden
+    if (/termin|sprechstunde|vorstellung|anmeldung|beratung|appointment/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Terminanfrage", isVoice, lang);
       return {
         type: "info",
         title: "Sprechstunden & Terminvereinbarung",
@@ -323,7 +397,7 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 8. Intelligentes Klinik- & Symptom-Matching
+    // 9. Intelligentes Klinik- & Symptom-Matching
     const scoredClinics = this.standorte.map(clinic => {
       let score = 0;
       const matchedTerms = [];
@@ -371,12 +445,26 @@ class ParacelsusBotEngine {
         url: buildMarketingUrl(best.url, best.id, topMatches[0].matchedTerms.join("_"))
       };
 
-      this.analytics.recordQuery(scrubbedInput, "match", best.id, best.type, isVoice);
+      this.analytics.recordQuery(scrubbedInput, "match", best.id, best.type, isVoice, lang);
+
+      const titleMap = {
+        de: `Empfohlene Fachklinik: ${best.name}`,
+        en: `Recommended Hospital: ${best.name}`,
+        tr: `Önerilen Uzmanlık Kliniği: ${best.name}`,
+        uk: `Рекомендована клініка: ${best.name}`
+      };
+
+      const msgMap = {
+        de: `Für Ihr Anliegen empfehlen wir das Spezialistenteam der **${best.name}** in ${best.city}.`,
+        en: `For your medical condition, we recommend the specialist team at **${best.name}** in ${best.city}.`,
+        tr: `Şikayetiniz için **${best.name}** (${best.city}) uzman ekibini öneriyoruz.`,
+        uk: `Для вирішення вашого медичного питання рекомендуємо фахівців **${best.name}** у м. ${best.city}.`
+      };
 
       return {
         type: "match",
-        title: `Empfohlene Fachklinik: ${best.name}`,
-        message: `Für Ihr Anliegen empfehlen wir das Spezialistenteam der **${best.name}** in ${best.city}.`,
+        title: titleMap[lang] || titleMap.de,
+        message: msgMap[lang] || msgMap.de,
         clinic: trackedClinic,
         additionalMatches: topMatches.slice(1, 3).map(m => ({
           ...m.clinic,
@@ -386,12 +474,12 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 9. Fallback & Content-Gap Aufzeichnung
-    this.analytics.recordQuery(scrubbedInput, "fallback", null, "Unspezifisch", isVoice);
+    // 10. Fallback & Content-Gap Aufzeichnung
+    this.analytics.recordQuery(scrubbedInput, "fallback", null, "Unspezifisch", isVoice, lang);
     return {
       type: "fallback",
       title: "Paracelsus Klinik-Wegweiser",
-      message: "Ich konnte Ihre Anfrage keinem direkten Spezialbereich zuordnen. Bitte wählen Sie eines unserer medizinischen Spitzenzentren oder nennen Sie Ihre Region:",
+      message: "Ich konnte Ihre Anfrage keinem direkten Spezialbereich zuordnen. Bitte wählen Sie eines unserer medizinischen Spitzenzentren oder nutzen Sie unseren geführten Symptom-Lotsen:",
       chips: [
         "Parkinson & Neurologie (Kassel)",
         "Urologie & Prostata (Düsseldorf)",

@@ -1,6 +1,6 @@
 /**
  * Paracelsus Kliniken — Universal Embeddable Widget
- * Version: 3.0.0
+ * Version: 3.5.0 (Multi-Lingual, Accessibility & Zuweiser Portal)
  * 
  * Einbindung auf jeder beliebigen Website (Typo3, WordPress, Webflow, Custom):
  * <script src="https://simonda26.github.io/paracelsus-navigator/paracelsus-widget.js" defer></script>
@@ -9,11 +9,9 @@
 (function () {
   "use strict";
 
-  // Verhindere Mehrfach-Initialisierung
   if (window.ParacelsusWidgetLoaded) return;
   window.ParacelsusWidgetLoaded = true;
 
-  // Lade CSS falls noch nicht vorhanden
   const currentScript = document.currentScript;
   const baseUrl = currentScript ? currentScript.src.substring(0, currentScript.src.lastIndexOf("/")) : "";
 
@@ -24,12 +22,10 @@
     document.head.appendChild(link);
   }
 
-  // Lade Widget-CSS
   if (baseUrl) {
     loadStyleSheet(`${baseUrl}/src/widget.css`);
   }
 
-  // Widget HTML Template
   const widgetHtml = `
   <div id="paracelsusWidgetRoot">
     <!-- Floating Launcher Button -->
@@ -55,7 +51,11 @@
             <span>Digitaler Lotsendienst</span>
           </div>
         </div>
-        <div style="display: flex; gap: 8px; align-items: center;">
+        <div class="pc-header-controls">
+          <button class="pc-font-btn" id="pcFontBtn" title="Schrift vergrößern">A+</button>
+          <button class="pc-lang-btn active" id="pcLangDE" data-lang="de">DE</button>
+          <button class="pc-lang-btn" id="pcLangEN" data-lang="en">EN</button>
+          <button class="pc-lang-btn" id="pcLangTR" data-lang="tr">TR</button>
           <button class="pc-close-btn" id="pcCloseBtn" aria-label="Schließen">&times;</button>
         </div>
       </div>
@@ -79,7 +79,8 @@
             <button class="pc-chip" data-query="Prostata & Urologie">Prostata / Urologie</button>
             <button class="pc-chip" data-query="Gelenke, Knie & Hüfte">Orthopädie / Gelenke</button>
             <button class="pc-chip" data-query="Zentrale Notaufnahme">Notaufnahme</button>
-            <button class="pc-chip" data-query="Checkliste für die Aufnahme">Koffer-Checkliste</button>
+            <button class="pc-chip" data-query="Checkliste für die Aufnahme">Koffer-Packliste</button>
+            <button class="pc-chip" data-query="Zuweiser und Ärzteportal">🩺 Für Ärzte / Zuweiser</button>
             <button class="pc-chip" data-query="Karriere und Jobs">Karriere / Jobs</button>
           </div>
         </div>
@@ -109,7 +110,6 @@
   </div>
   `;
 
-  // Hilfsfunktion zum Laden von Skripten falls noch nicht im Scope
   function ensureDependency(url, globalCheck, callback) {
     if (window[globalCheck]) {
       callback();
@@ -126,13 +126,22 @@
     wrapper.innerHTML = widgetHtml;
     document.body.appendChild(wrapper);
 
-    // Initialisiere Engine
     ensureDependency(`${baseUrl}/data/standorte.js`, "PARACELSUS_STANDORTE", () => {
       ensureDependency(`${baseUrl}/src/bot-engine.js`, "ParacelsusBotEngine", () => {
         const engine = new window.ParacelsusBotEngine(window.PARACELSUS_STANDORTE || []);
         attachListeners(engine);
       });
     });
+  }
+
+  function speakText(text) {
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const clean = text.replace(/<[^>]*>?/gm, "").replace(/[•*#]/g, "");
+    const utterance = new SpeechSynthesisUtterance(clean);
+    utterance.lang = "de-DE";
+    utterance.rate = 0.95;
+    window.speechSynthesis.speak(utterance);
   }
 
   function attachListeners(engine) {
@@ -143,6 +152,22 @@
     const input = document.getElementById("pcDrawerInput");
     const messages = document.getElementById("pcDrawerMessages");
     const voiceBtn = document.getElementById("pcVoiceBtn");
+    const fontBtn = document.getElementById("pcFontBtn");
+
+    let isLargeFont = false;
+    fontBtn.addEventListener("click", () => {
+      isLargeFont = !isLargeFont;
+      drawer.classList.toggle("font-size-large", isLargeFont);
+    });
+
+    document.querySelectorAll(".pc-lang-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        document.querySelectorAll(".pc-lang-btn").forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const lang = btn.dataset.lang;
+        engine.setLanguage(lang);
+      });
+    });
 
     function toggleChat(force) {
       if (typeof force === "boolean") {
@@ -159,14 +184,12 @@
     launcher.addEventListener("click", () => toggleChat());
     closeBtn.addEventListener("click", () => toggleChat(false));
 
-    // Keyboard ESC zum Schließen
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape" && !drawer.classList.contains("closed")) {
         toggleChat(false);
       }
     });
 
-    // Delegiertes Event für Chips
     messages.addEventListener("click", (e) => {
       const chip = e.target.closest(".pc-chip");
       if (chip && chip.dataset.query) {
@@ -175,7 +198,6 @@
       }
     });
 
-    // Web Speech API Spracheingabe
     let recognition = null;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRecognition) {
@@ -233,20 +255,19 @@
     }
 
     function renderResponse(res) {
-      // 1. Notfall
       if (res.type === "emergency") {
         const html = `
           <div class="pc-emergency-head">🚨 ${res.alertTitle}</div>
           <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">${res.message}</p>
           <p style="font-size: 13px; line-height: 1.4; margin-bottom: 10px;">${res.guidance}</p>
           <a href="tel:${res.emergencyCall}" class="pc-emergency-call-btn">☎️ ${res.actionText}</a>
+          <button type="button" class="pc-tts-btn" onclick="(${speakText.toString()})('${res.message}. ${res.guidance}')">🔊 Vorlesen</button>
           <p style="font-size: 11px; margin-top: 10px; opacity: 0.85;">${res.secondaryNotice}</p>
         `;
         appendMsg(html, "bot", "emergency-box");
         return;
       }
 
-      // 2. Nicht angebotene Fachbereiche
       if (res.type === "unsupported") {
         let html = `<strong>${res.title}</strong><br>${res.message}<br><br>${res.recommendation}`;
         html += `<br><a href="tel:116117" class="pc-hotline-btn">📞 Ärztlicher Bereitschaftsdienst: 116 117</a>`;
@@ -261,9 +282,35 @@
         return;
       }
 
-      // 3. Checkliste für Aufnahme
+      if (res.type === "zuweiser") {
+        let html = `<strong>🩺 ${res.title}</strong><br>${res.message}`;
+        html += `<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">`;
+        res.zuweiserContacts.forEach(z => {
+          html += `
+            <div class="pc-zuweiser-card">
+              <div class="pc-zuweiser-clinic">${z.clinic}</div>
+              <div style="font-size: 11px; color: #555;">${z.note}</div>
+              <div class="pc-zuweiser-details">
+                <span>📞 Tel: <a href="tel:${z.phone}" style="color: var(--gruen); font-weight: 700;">${z.phone}</a></span>
+                <span>📠 Fax: ${z.fax}</span>
+              </div>
+            </div>
+          `;
+        });
+        html += `</div>`;
+        if (res.chips && res.chips.length > 0) {
+          html += `<div class="pc-chips">`;
+          res.chips.forEach(c => {
+            html += `<button class="pc-chip" data-query="${c}">${c}</button>`;
+          });
+          html += `</div>`;
+        }
+        appendMsg(html, "bot");
+        return;
+      }
+
       if (res.type === "checklist") {
-        let html = `<strong>${res.title}</strong><br>${res.message}<ul class="pc-clinic-highlights" style="margin-top: 10px;">`;
+        let html = `<strong>📋 ${res.title}</strong><br>${res.message}<ul class="pc-clinic-highlights" style="margin-top: 10px;">`;
         res.checklistItems.forEach(item => {
           html += `<li>${item}</li>`;
         });
@@ -279,7 +326,6 @@
         return;
       }
 
-      // 4. Klinik-Match
       let html = `<strong>${res.title || "Paracelsus Wegweiser"}</strong><br>${res.message}`;
 
       if (res.clinic) {
@@ -325,7 +371,6 @@
       handleSend();
     });
 
-    // Globaler API-Zugriff
     window.ParacelsusWidget = {
       open: () => toggleChat(true),
       close: () => toggleChat(false),
@@ -337,7 +382,6 @@
     };
   }
 
-  // Auto-Start bei DOMReady
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", init);
   } else {

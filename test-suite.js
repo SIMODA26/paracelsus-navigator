@@ -1,6 +1,6 @@
 /**
- * Paracelsus Kliniken - Comprehensive Automated Verification Test Suite
- * Senior Developer Audit
+ * Paracelsus Kliniken - Comprehensive Automated Verification Test Suite v3.5
+ * Senior Developer Audit (Clinical Safety, MDR, DSGVO Art. 9, Multi-Lingual, Zuweiser)
  */
 
 const assert = require("assert");
@@ -8,7 +8,7 @@ const { ParacelsusBotEngine, scrubPII, buildMarketingUrl, EMERGENCY_CATEGORIES }
 const standorteData = require("./data/standorte.json");
 
 console.log("=================================================");
-console.log("🏥 STARTING PARACELSUS CLINICAL & QA TEST SUITE");
+console.log("🏥 STARTING PARACELSUS CLINICAL & QA TEST SUITE v3.5");
 console.log("=================================================");
 
 const engine = new ParacelsusBotEngine(standorteData);
@@ -27,7 +27,7 @@ function runTest(name, fn) {
 }
 
 // 1. PII SCRUBBING TESTS (DSGVO Art. 9)
-runTest("PII Scrubber: Strips Names", () => {
+runTest("PII Scrubber: Strips Names with titles", () => {
   const input = "Mein Name ist Dr. Thomas Müller und ich brauche Hilfe";
   const output = scrubPII(input);
   assert(!output.includes("Thomas"), "Name was not removed");
@@ -82,7 +82,29 @@ runTest("Emergency Triage: Mental Health Crisis / Suicide", () => {
   assert.strictEqual(res.emergencyCall, "0800 111 0 111");
 });
 
-// 3. NEGATIVE CATALOG & REFERRALS (116 117)
+// 3. MULTI-LINGUAL SUPPORT TESTS
+runTest("Multi-Lingual: English Emergency & Hospital Matching", () => {
+  engine.setLanguage("en");
+  const em = engine.processQuery("I have severe chest pain and cannot breathe");
+  assert.strictEqual(em.type, "emergency");
+  assert.strictEqual(em.emergencyCall, "112");
+  assert(em.alertTitle.includes("HEART ATTACK") || em.alertTitle.includes("RESPIRATORY"));
+
+  const match = engine.processQuery("Where can I find specialists for Parkinson disease?");
+  assert.strictEqual(match.type, "match");
+  assert(match.title.includes("Recommended Hospital") || match.title.includes("Elena-Klinik"));
+  engine.setLanguage("de"); // reset
+});
+
+runTest("Multi-Lingual: Turkish Hospital Matching", () => {
+  engine.setLanguage("tr");
+  const match = engine.processQuery("Parkinson tedavisi için hastane arıyorum");
+  assert.strictEqual(match.type, "match");
+  assert(match.title.includes("Önerilen Uzmanlık Kliniği") || match.title.includes("Elena-Klinik"));
+  engine.setLanguage("de"); // reset
+});
+
+// 4. NEGATIVE CATALOG & REFERRALS (116 117)
 runTest("Negative Catalog: Obstetrics / Kreißsaal", () => {
   const res = engine.processQuery("Gibt es bei Ihnen einen Kreißsaal für die Geburt unseres Babys?");
   assert.strictEqual(res.type, "unsupported");
@@ -97,7 +119,15 @@ runTest("Negative Catalog: Pediatrics / Kinderklinik", () => {
   assert.strictEqual(res.hotline, "116 117");
 });
 
-// 4. CLINICAL SPECIALTY & ROUTING TESTS
+// 5. ZUWEISER & ARZTPORTAL TESTS
+runTest("Zuweiser Portal: Direct Chefarzt & Admission Contacts", () => {
+  const res = engine.processQuery("Ich bin niedergelassener Urologe und möchte einen Patienten einweisen");
+  assert.strictEqual(res.type, "zuweiser");
+  assert(res.zuweiserContacts.length >= 3);
+  assert(res.zuweiserContacts.some(z => z.clinic.includes("Golzheim")));
+});
+
+// 6. CLINICAL SPECIALTY & ROUTING TESTS
 runTest("Clinical Routing: DaVinci Prostate in Düsseldorf", () => {
   const res = engine.processQuery("Ich suche ein DaVinci Roboter Zentrum für Prostatakrebs in Düsseldorf");
   assert.strictEqual(res.type, "match");
@@ -124,14 +154,14 @@ runTest("Clinical Routing: Emergency Surgery Henstedt-Ulzburg", () => {
   assert.strictEqual(res.clinic.id, "henstedt-ulzburg");
 });
 
-// 5. PATIENT JOURNEY: CHECKLISTS & VISITING HOURS
+// 7. PATIENT JOURNEY: CHECKLISTS & VISITING HOURS
 runTest("Patient Journey: Koffer-Checkliste", () => {
   const res = engine.processQuery("Was muss ich zur stationären Aufnahme alles mitbringen?");
   assert.strictEqual(res.type, "checklist");
   assert(res.checklistItems.length >= 4);
 });
 
-// 6. MARKETING & UTM BUILDER
+// 8. MARKETING & UTM BUILDER
 runTest("Marketing: UTM Builder creates compliant query params", () => {
   const url = buildMarketingUrl("https://www.paracelsus-kliniken.de/duesseldorf/", "duesseldorf-golzheim", "davinci");
   assert(url.includes("utm_source=paracelsus_wegweiser"));

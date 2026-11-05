@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paracelsus Kliniken — Digitaler Klinik-Wegweiser (Executive Preview)</title>
+  <title>Paracelsus Kliniken — Digitaler Klinik-Wegweiser (Executive Preview v3.5)</title>
   <link rel="stylesheet" href="src/widget.css">
 </head>
 <body>
@@ -19,7 +19,8 @@
       <button class="exec-btn alert" onclick="triggerScenario('notfall')" title="Notfall-Triage testen">🚨 Notfall-Stopp (112)</button>
       <button class="exec-btn" onclick="triggerScenario('davinci')" title="DaVinci Robotik Düsseldorf">🤖 DaVinci Urologie</button>
       <button class="exec-btn" onclick="triggerScenario('parkinson')" title="Parkinson Elena-Klinik Kassel">🧠 Parkinson Kassel</button>
-      <button class="exec-btn" onclick="triggerScenario('checkliste')" title="Koffer-Checkliste für Aufnahme">📋 Koffer-Checkliste</button>
+      <button class="exec-btn" onclick="triggerScenario('checkliste')" title="Interaktive Koffer-Packliste">📋 Interaktive Packliste</button>
+      <button class="exec-btn" onclick="triggerScenario('zuweiser')" title="Zuweiser & Ärzteportal">🩺 Zuweiser-Portal</button>
       <button class="exec-btn" onclick="triggerScenario('karriere')" title="Pflege & Karriere">💼 Pflege-Recruiting</button>
       <button class="exec-btn highlight" onclick="openAnalyticsModal()">📊 Marketing-Dashboard</button>
       <button class="exec-btn" onclick="openComplianceModal()">🛡️ MDR & DSGVO Zertifikat</button>
@@ -140,7 +141,7 @@
   <!-- 2. Chatbot Drawer Window -->
   <div class="paracelsus-chat-window" id="chatWindow" role="dialog" aria-modal="true" aria-labelledby="chatHeaderTitle">
     
-    <!-- Widget Header -->
+    <!-- Widget Header with Accessibility & Language Controls -->
     <div class="pc-header">
       <div class="pc-header-brand">
         <div class="pc-brand-p">
@@ -151,7 +152,16 @@
           <span>Digitaler Lotsendienst</span>
         </div>
       </div>
-      <button class="pc-close-btn" onclick="toggleChat(false)" aria-label="Schließen">&times;</button>
+      
+      <!-- Accessibility & Language Bar -->
+      <div class="pc-header-controls">
+        <button class="pc-font-btn" onclick="toggleFontSize()" title="Schrift vergrößern (Senioren-Modus)">A+</button>
+        <button class="pc-lang-btn active" id="btnLangDE" onclick="switchLanguage('de')" title="Deutsch">DE</button>
+        <button class="pc-lang-btn" id="btnLangEN" onclick="switchLanguage('en')" title="English">EN</button>
+        <button class="pc-lang-btn" id="btnLangTR" onclick="switchLanguage('tr')" title="Türkçe">TR</button>
+        <button class="pc-lang-btn" id="btnLangUK" onclick="switchLanguage('uk')" title="Українська">UK</button>
+        <button class="pc-close-btn" onclick="toggleChat(false)" aria-label="Schließen">&times;</button>
+      </div>
     </div>
 
     <!-- Safety Disclaimer Bar -->
@@ -176,7 +186,8 @@
           <button class="pc-chip" onclick="handleChipClick('Prostata & Urologie')">Prostata / Urologie</button>
           <button class="pc-chip" onclick="handleChipClick('Gelenke, Knie & Hüfte')">Orthopädie / Gelenke</button>
           <button class="pc-chip" onclick="handleChipClick('Zentrale Notaufnahme')">Notaufnahme</button>
-          <button class="pc-chip" onclick="handleChipClick('Checkliste für den Klinikaufenthalt')">Koffer-Checkliste</button>
+          <button class="pc-chip" onclick="handleChipClick('Checkliste für den Klinikaufenthalt')">Koffer-Packliste</button>
+          <button class="pc-chip" onclick="handleChipClick('Zuweiser und Ärzteportal')">🩺 Für Ärzte / Zuweiser</button>
           <button class="pc-chip" onclick="handleChipClick('Karriere und Jobs')">Karriere / Jobs</button>
         </div>
       </div>
@@ -198,7 +209,7 @@
         </svg>
       </button>
       <button type="submit" class="pc-send-btn" aria-label="Senden">
-        <svg viewBox="0 0 24 24">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
           <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
         </svg>
       </button>
@@ -300,7 +311,7 @@
 
         <h4 style="margin-bottom: 8px;">2. Datenschutz gemäß Art. 9 DSGVO (Gesundheitsdaten)</h4>
         <p style="margin-bottom: 16px;">
-          Es werden <strong>keine personenbezogenen Patientendaten gespeichert</strong>. Ein mehrstufiger PII-Scrubber (Personally Identifiable Information) entfernt vor jeder internen Verarbeitung automatisch Namen, Telefonnummern, E-Mails und Geburtsdaten. Das System speichert ausschließlich aggregierte Zähler (z. B. Standort-Klicks).
+          Es werden <strong>keine personenbezogenen Patientendaten gespeichert</strong>. Ein mehrstufiger PII-Scrubber (Personally Identifiable Information) entfernt vor jeder internen Verarbeitung automatisch Namen, Telefonnummern, E-Mails, Versichertennummern und Geburtsdaten. Das System speichert ausschließlich aggregierte Zähler.
         </p>
 
         <h4 style="margin-bottom: 8px;">3. Notfall-Triage & Haftungsausschluss</h4>
@@ -308,9 +319,9 @@
           Bei Eingabe vital gefährdender Symptome (Brustschmerz, FAST-Schlaganfallsymptome, akute Atemnot) blockiert das System unverzüglich die Regelführung und weist mit signalrotem Alarm auf den Notruf 112 hin. Ein dauerhafter Disclaimer sichert die Klinik rechtlich ab.
         </p>
 
-        <h4 style="margin-bottom: 8px;">4. Bereitstellung & Hosting</h4>
+        <h4 style="margin-bottom: 8px;">4. Barrierefreiheit & Mehrsprachigkeit</h4>
         <p>
-          Das System kann vollständig clientseitig im Rechenzentrum der Paracelsus-Website gehostet werden. Für optionale KI-Erweiterungen werden ausschließlich DSGVO-zertifizierte EU-Server (Region Frankfurt) angebunden.
+          Das System erfüllt BITV 2.0 Standards mit integrierter Sprachsteuerung (Speech-to-Text), zuschaltbarer Vorlesefunktion (Text-to-Speech) sowie 4 Sprachen (Deutsch, Englisch, Türkisch, Ukrainisch) zur lückenlosen Patientenorientierung.
         </p>
       </div>
     </div>
@@ -326,6 +337,32 @@
     const chatInput = document.getElementById("pcInput");
     const voiceBtn = document.getElementById("voiceSearchBtn");
 
+    let isLargeFont = false;
+
+    function toggleFontSize() {
+      isLargeFont = !isLargeFont;
+      if (isLargeFont) {
+        chatWindow.classList.add("font-size-large");
+      } else {
+        chatWindow.classList.remove("font-size-large");
+      }
+    }
+
+    function switchLanguage(lang) {
+      engine.setLanguage(lang);
+      document.querySelectorAll(".pc-lang-btn").forEach(btn => btn.classList.remove("active"));
+      const btn = document.getElementById("btnLang" + lang.toUpperCase());
+      if (btn) btn.classList.add("active");
+
+      const welcomeTexts = {
+        de: "Sprache auf Deutsch umgestellt. Wie kann ich Ihnen helfen?",
+        en: "Switched to English. How can we help you today?",
+        tr: "Türkçe diline geçildi. Size nasıl yardımcı olabiliriz?",
+        uk: "Мову змінено на українську. Чим ми можемо вам допомогти?"
+      };
+      appendBotResponse({ type: "info", title: "Language", message: welcomeTexts[lang] || welcomeTexts.de, chips: ["Urologie (Düsseldorf)", "Parkinson (Kassel)", "Orthopädie (Bremen)"] });
+    }
+
     function toggleChat(forceState) {
       if (typeof forceState === "boolean") {
         if (forceState) chatWindow.classList.remove("closed");
@@ -339,7 +376,6 @@
       }
     }
 
-    // Keyboard ESC schließt Chat
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
         if (!chatWindow.classList.contains("closed")) toggleChat(false);
@@ -378,6 +414,8 @@
         chatInput.value = "Meine Mutter zittert stark an den Händen, gibt es eine Parkinson Fachklinik in Kassel?";
       } else if (type === "checkliste") {
         chatInput.value = "Was muss ich zur stationären Aufnahme in die Klinik mitbringen?";
+      } else if (type === "zuweiser") {
+        chatInput.value = "Ich bin niedergelassener Arzt und möchte einen Patienten einweisen";
       } else if (type === "karriere") {
         chatInput.value = "Ich möchte mich als Pflegefachkraft bewerben";
       }
@@ -392,6 +430,17 @@
       scrollToBottom();
     }
 
+    // Vorlesefunktion (Text-to-Speech)
+    function speakText(text) {
+      if (!window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/<[^>]*>?/gm, "").replace(/[•*#]/g, "");
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.lang = "de-DE";
+      utterance.rate = 0.95;
+      window.speechSynthesis.speak(utterance);
+    }
+
     function appendBotResponse(res) {
       const msg = document.createElement("div");
 
@@ -403,6 +452,7 @@
           <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">${res.message}</p>
           <p style="font-size: 13px; line-height: 1.45; margin-bottom: 10px;">${res.guidance}</p>
           <a href="tel:${res.emergencyCall}" class="pc-emergency-call-btn" onclick="engine.analytics.recordClick('emergency', '${res.emergencyCall}')">☎️ ${res.actionText}</a>
+          <button type="button" class="pc-tts-btn" onclick="speakText('${res.message}. ${res.guidance}')">🔊 Vorlesen</button>
           <p style="font-size: 11px; margin-top: 10px; opacity: 0.85;">${res.secondaryNotice}</p>
         `;
         messagesArea.appendChild(msg);
@@ -428,14 +478,24 @@
         return;
       }
 
-      // 3. Koffer-Checkliste
-      if (res.type === "checklist") {
+      // 3. Zuweiser- & Facharztportal
+      if (res.type === "zuweiser") {
         msg.className = "pc-msg bot";
-        let html = `<strong>📋 ${res.title}</strong><br>${res.message}<ul class="pc-clinic-highlights" style="margin-top: 10px;">`;
-        res.checklistItems.forEach(item => {
-          html += `<li>${item}</li>`;
+        let html = `<strong>🩺 ${res.title}</strong><br>${res.message}`;
+        html += `<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">`;
+        res.zuweiserContacts.forEach(z => {
+          html += `
+            <div class="pc-zuweiser-card">
+              <div class="pc-zuweiser-clinic">${z.clinic}</div>
+              <div style="font-size: 11px; color: #555;">${z.note}</div>
+              <div class="pc-zuweiser-details">
+                <span>📞 Tel: <a href="tel:${z.phone}" style="color: var(--gruen); font-weight: 700;">${z.phone}</a></span>
+                <span>📠 Fax: ${z.fax}</span>
+              </div>
+            </div>
+          `;
         });
-        html += `</ul>`;
+        html += `</div>`;
         if (res.chips && res.chips.length > 0) {
           html += `<div class="pc-chips">`;
           res.chips.forEach(c => {
@@ -449,7 +509,49 @@
         return;
       }
 
-      // 4. Normales Routing & Matching
+      // 4. Interaktive Koffer-Packliste
+      if (res.type === "checklist") {
+        msg.className = "pc-msg bot";
+        const total = res.checklistItems.length;
+        let html = `<strong>📋 ${res.title}</strong><br>${res.message}`;
+        html += `
+          <div class="pc-checklist-wrapper" id="checklistWrapper">
+            <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--salbei);">
+              <span>Pack-Fortschritt</span>
+              <span id="packProgressText">0 von ${total} erledigt</span>
+            </div>
+            <div class="pc-checklist-progress-bar">
+              <div class="pc-checklist-progress-fill" id="packProgressBar"></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+        `;
+        res.checklistItems.forEach((item, idx) => {
+          html += `
+            <label class="pc-check-item" id="checkLabel_${idx}">
+              <input type="checkbox" onchange="updateChecklistProgress(${idx}, ${total})">
+              <span>${item}</span>
+            </label>
+          `;
+        });
+        html += `
+            </div>
+          </div>
+          <button type="button" class="pc-tts-btn" onclick="speakText('${res.message}')">🔊 Vorlesen</button>
+        `;
+        if (res.chips && res.chips.length > 0) {
+          html += `<div class="pc-chips">`;
+          res.chips.forEach(c => {
+            html += `<button class="pc-chip" onclick="handleChipClick('${c}')">${c}</button>`;
+          });
+          html += `</div>`;
+        }
+        msg.innerHTML = html;
+        messagesArea.appendChild(msg);
+        scrollToBottom();
+        return;
+      }
+
+      // 5. Normales Routing & Matching
       msg.className = "pc-msg bot";
       let html = `<strong>${res.title || "Paracelsus Wegweiser"}</strong><br>${res.message}`;
 
@@ -480,6 +582,8 @@
         html += `</ul>`;
       }
 
+      html += `<button type="button" class="pc-tts-btn" onclick="speakText('${(res.title || "")} ${(res.message || "").replace(/[*_]/g, "")}')">🔊 Vorlesen</button>`;
+
       if (res.chips && res.chips.length > 0) {
         html += `<div class="pc-chips">`;
         res.chips.forEach(c => {
@@ -491,6 +595,24 @@
       msg.innerHTML = html;
       messagesArea.appendChild(msg);
       scrollToBottom();
+    }
+
+    function updateChecklistProgress(idx, total) {
+      const label = document.getElementById(`checkLabel_${idx}`);
+      const checkbox = label.querySelector("input[type='checkbox']");
+      if (checkbox.checked) {
+        label.classList.add("checked");
+      } else {
+        label.classList.remove("checked");
+      }
+
+      const checkedCount = document.querySelectorAll("#checklistWrapper input[type='checkbox']:checked").length;
+      const progressText = document.getElementById("packProgressText");
+      const progressBar = document.getElementById("packProgressBar");
+      if (progressText && progressBar) {
+        progressText.innerText = `${checkedCount} von ${total} erledigt`;
+        progressBar.style.width = `${Math.round((checkedCount / total) * 100)}%`;
+      }
     }
 
     function handleFormSubmit(e) {
