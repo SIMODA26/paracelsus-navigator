@@ -2,54 +2,143 @@
 
 /* ==========================================================================
    Paracelsus Kliniken — Corporate Web Design System & Navigator Widget
-   Typografie: RB Rational Neue (Offizieller Paracelsus Brand Font)
+   Typografie: RB Rational Neue (Offizieller Paracelsus Brand Font von René Bieder)
    Farbwelt: Lebensgrün (#123e40), Aktivtürkis (#95c8ba), Balancebeige (#cdc9c1)
    ========================================================================== */
 
+/* 1. Primär-Definition: RBRationalNeue */
+@font-face {
+  font-family: "RBRationalNeue";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Light.ttf") format("truetype");
+}
 @font-face {
   font-family: "RBRationalNeue";
   font-weight: 400;
+  font-style: normal;
+  font-display: swap;
   src: url("../assets/fonts/RBRationalNeue-Regular.otf") format("opentype");
 }
 @font-face {
   font-family: "RBRationalNeue";
   font-weight: 500;
+  font-style: normal;
+  font-display: swap;
   src: url("../assets/fonts/RBRationalNeue-Medium.otf") format("opentype");
 }
 @font-face {
   font-family: "RBRationalNeue";
   font-weight: 600;
+  font-style: normal;
+  font-display: swap;
   src: url("../assets/fonts/RBRationalNeue-SemiBold.otf") format("opentype");
 }
 @font-face {
   font-family: "RBRationalNeue";
   font-weight: 700;
+  font-style: normal;
+  font-display: swap;
   src: url("../assets/fonts/RBRationalNeue-Bold.otf") format("opentype");
 }
 @font-face {
   font-family: "RBRationalNeue";
   font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-ExtraBold.otf") format("opentype");
+}
+
+/* 2. Alias-Definition: RBR (für Code-Kompatibilität mit Paracelsus-Vorlagen) */
+@font-face {
+  font-family: "RBR";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Light.ttf") format("truetype");
+}
+@font-face {
+  font-family: "RBR";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Regular.otf") format("opentype");
+}
+@font-face {
+  font-family: "RBR";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Medium.otf") format("opentype");
+}
+@font-face {
+  font-family: "RBR";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-SemiBold.otf") format("opentype");
+}
+@font-face {
+  font-family: "RBR";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Bold.otf") format("opentype");
+}
+@font-face {
+  font-family: "RBR";
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
   src: url("../assets/fonts/RBRationalNeue-ExtraBold.otf") format("opentype");
 }
 
 :root {
-  --font-brand: "RBRationalNeue", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-brand: "RBRationalNeue", "RBR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --bg-page: #f8faf9;
   --text-main: var(--gruen);
 }
 
-* {
+*, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
 }
 
+/* Strikte Durchsetzung der Markenschrift für alle Text- & Eingabeelemente */
+html, body, input, button, select, textarea, optgroup, p, span, h1, h2, h3, h4, h5, h6, a, label, div {
+  font-family: var(--font-brand) !important;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 body {
-  font-family: var(--font-brand);
   background-color: var(--bg-page);
   color: var(--text-main);
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
+  line-height: 1.4; /* Styleguide: 1.4-facher Zeilenabstand */
+  font-weight: 500; /* Styleguide: Fließtext immer in Medium */
+}
+
+/* Styleguide: Headlines immer in Bold, Zeilenabstand = Schriftgröße */
+h1, h2, h3, h4, h5, h6 {
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.3px;
+}
+
+/* Styleguide: Fließtext immer Medium, Hervorhebungen Bold */
+p, .pc-msg, .chat-bubble {
+  font-weight: 500;
+  line-height: 1.4;
+}
+
+strong, b, .bold {
+  font-weight: 700;
+}
+
+.light {
+  font-weight: 300;
 }
 
 /* ==========================================================================
