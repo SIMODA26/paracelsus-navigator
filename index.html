@@ -156,10 +156,15 @@
       <!-- Accessibility & Language Bar -->
       <div class="pc-header-controls">
         <button class="pc-font-btn" onclick="toggleFontSize()" title="Schrift vergrößern (Senioren-Modus)">A+</button>
-        <button class="pc-lang-btn active" id="btnLangDE" onclick="switchLanguage('de')" title="Deutsch">DE</button>
-        <button class="pc-lang-btn" id="btnLangEN" onclick="switchLanguage('en')" title="English">EN</button>
-        <button class="pc-lang-btn" id="btnLangTR" onclick="switchLanguage('tr')" title="Türkçe">TR</button>
-        <button class="pc-lang-btn" id="btnLangUK" onclick="switchLanguage('uk')" title="Українська">UK</button>
+        <div class="pc-lang-picker" title="Sprache auswählen">
+          <span class="pc-lang-globe" aria-hidden="true">🌐</span>
+          <select class="pc-lang-select" id="pcLangSelect" onchange="switchLanguage(this.value)" aria-label="Sprache auswählen">
+            <option value="de" selected>DE</option>
+            <option value="en">EN</option>
+            <option value="tr">TR</option>
+            <option value="uk">UK</option>
+          </select>
+        </div>
         <button class="pc-close-btn" onclick="toggleChat(false)" aria-label="Schließen">&times;</button>
       </div>
     </div>
@@ -358,9 +363,8 @@
 
     function switchLanguage(lang) {
       engine.setLanguage(lang);
-      document.querySelectorAll(".pc-lang-btn").forEach(btn => btn.classList.remove("active"));
-      const btn = document.getElementById("btnLang" + lang.toUpperCase());
-      if (btn) btn.classList.add("active");
+      const select = document.getElementById("pcLangSelect");
+      if (select && select.value !== lang) select.value = lang;
 
       const welcomeTexts = {
         de: "Sprache auf Deutsch umgestellt. Wie kann ich Ihnen helfen?",

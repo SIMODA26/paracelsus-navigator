@@ -53,9 +53,15 @@
         </div>
         <div class="pc-header-controls">
           <button class="pc-font-btn" id="pcFontBtn" title="Schrift vergrößern">A+</button>
-          <button class="pc-lang-btn active" id="pcLangDE" data-lang="de">DE</button>
-          <button class="pc-lang-btn" id="pcLangEN" data-lang="en">EN</button>
-          <button class="pc-lang-btn" id="pcLangTR" data-lang="tr">TR</button>
+          <div class="pc-lang-picker" title="Sprache auswählen">
+            <span class="pc-lang-globe" aria-hidden="true">🌐</span>
+            <select class="pc-lang-select" id="pcLangSelect" aria-label="Sprache auswählen">
+              <option value="de" selected>DE</option>
+              <option value="en">EN</option>
+              <option value="tr">TR</option>
+              <option value="uk">UK</option>
+            </select>
+          </div>
           <button class="pc-close-btn" id="pcCloseBtn" aria-label="Schließen">&times;</button>
         </div>
       </div>
@@ -160,14 +166,20 @@
       drawer.classList.toggle("font-size-large", isLargeFont);
     });
 
-    document.querySelectorAll(".pc-lang-btn").forEach(btn => {
-      btn.addEventListener("click", () => {
-        document.querySelectorAll(".pc-lang-btn").forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
-        const lang = btn.dataset.lang;
+    const langSelect = document.getElementById("pcLangSelect");
+    if (langSelect) {
+      langSelect.addEventListener("change", (e) => {
+        const lang = e.target.value;
         engine.setLanguage(lang);
+        const welcomeTexts = {
+          de: "Sprache auf Deutsch umgestellt. Wie kann ich Ihnen helfen?",
+          en: "Switched to English. How can we help you today?",
+          tr: "Türkçe diline geçildi. Size nasıl yardımcı olabiliriz?",
+          uk: "Мову змінено на українську. Чим ми можемо вам допомогти?"
+        };
+        renderResponse({ type: "info", title: "Language", message: welcomeTexts[lang] || welcomeTexts.de, chips: ["Urologie (Düsseldorf)", "Parkinson (Kassel)", "Orthopädie (Bremen)"] });
       });
-    });
+    }
 
     function toggleChat(force) {
       if (typeof force === "boolean") {
