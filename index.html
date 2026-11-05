@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Paracelsus Kliniken — Digitaler Klinik-Wegweiser (Executive Preview)</title>
+  <link rel="stylesheet" href="src/widget.css">
+</head>
+<body>
+
+  <!-- =========================================================================
+       Executive Showcase Bar (Präsentationsleiste für Klinikleitung & Maike)
+       ========================================================================= -->
+  <aside class="executive-demo-bar" aria-label="Präsentationssteuerung">
+    <div class="exec-title-tag">
+      <span>🏛️ Präsentation: Klinikleitung & Marketing</span>
+    </div>
+    <div class="exec-scenario-buttons">
+      <button class="exec-btn alert" onclick="triggerScenario('notfall')" title="Notfall-Triage testen">🚨 Notfall-Stopp (112)</button>
+      <button class="exec-btn" onclick="triggerScenario('davinci')" title="DaVinci Robotik Düsseldorf">🤖 DaVinci Urologie</button>
+      <button class="exec-btn" onclick="triggerScenario('parkinson')" title="Parkinson Elena-Klinik Kassel">🧠 Parkinson Kassel</button>
+      <button class="exec-btn" onclick="triggerScenario('checkliste')" title="Koffer-Checkliste für Aufnahme">📋 Koffer-Checkliste</button>
+      <button class="exec-btn" onclick="triggerScenario('karriere')" title="Pflege & Karriere">💼 Pflege-Recruiting</button>
+      <button class="exec-btn highlight" onclick="openAnalyticsModal()">📊 Marketing-Dashboard</button>
+      <button class="exec-btn" onclick="openComplianceModal()">🛡️ MDR & DSGVO Zertifikat</button>
+    </div>
+  </aside>
+
+  <!-- =========================================================================
+       Paracelsus Kliniken Website Header
+       ========================================================================= -->
+  <header class="site-header">
+    <div class="site-top-bar">
+      <div>Akutkliniken &bull; Fachkliniken &bull; Reha &bull; MVZ</div>
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span class="emergency-hotline">🚨 Ärztlicher Notdienst: 116 117 | Notruf: 112</span>
+        <a href="#karriere">Karriere</a>
+        <a href="#kontakt">Kontakt</a>
+      </div>
+    </div>
+
+    <nav class="site-nav-container">
+      <a href="#" class="brand-logo-wrap">
+        <img src="assets/bildmarke_p.png" alt="Paracelsus Bildmarke" class="brand-logo-img">
+        <div class="brand-logo-text">
+          <span class="brand-name">Paracelsus</span>
+          <span class="brand-claim">Kliniken Deutschland</span>
+        </div>
+      </a>
+
+      <ul class="site-menu">
+        <li><a href="#standorte" class="active">Kliniken & Standorte</a></li>
+        <li><a href="#fachbereiche">Fachbereiche</a></li>
+        <li><a href="#behandlung">Behandlung & Aufenthalt</a></li>
+        <li><a href="#karriere">Karriere & Ausbildung</a></li>
+        <li><a href="javascript:toggleChat(true)" class="site-btn-nav">💬 Klinik-Finder</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- =========================================================================
+       Paracelsus Hero Banner
+       ========================================================================= -->
+  <section class="hero-section">
+    <div class="hero-inner">
+      <span class="hero-badge">Spitzenmedizin &bull; Nah am Menschen</span>
+      <h1 class="hero-title">Gesundheit neu denken.<br><span class="accent">Verlässliche Medizin</span> in ganz Deutschland.</h1>
+      <p class="hero-subline">
+        Von spezialisierten Parkinson- und Urologie-Zentren bis zur regionalen Notfallversorgung: 
+        Finden Sie schnell und unkompliziert die richtige Klinik und Ihren Ansprechpartner.
+      </p>
+
+      <!-- Quick Finder Search -->
+      <div class="quick-finder-bar">
+        <input 
+          type="text" 
+          id="heroSearchInput" 
+          placeholder="Wonach suchen Sie? (z.B. Parkinson, DaVinci Roboter, Düsseldorf, neues Knie, Notaufnahme...)"
+          onkeydown="if(event.key==='Enter') triggerSearchFromHero()"
+          aria-label="Suchbegriff eingeben"
+        >
+        <button class="quick-finder-btn" onclick="triggerSearchFromHero()">Klinik finden &rarr;</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- =========================================================================
+       Website Content Section (Beispiel-Teaser)
+       ========================================================================= -->
+  <main class="content-section">
+    <div class="section-label">Kompetenznetzwerk</div>
+    <h2 class="section-title">Ausgewählte Schwerpunkte unserer Fachkliniken</h2>
+
+    <div class="clinics-grid">
+      <div class="clinic-card">
+        <span class="clinic-card-tag">Neurologie & Parkinson</span>
+        <h3>Elena-Klinik Kassel</h3>
+        <p>Deutschlands älteste und größte Fachklinik für Parkinson und Bewegungsstörungen mit international renommierten Spezialisten.</p>
+        <a href="javascript:openWithQuery('Parkinson Spezialklinik')">Fachbereich öffnen &rarr;</a>
+      </div>
+
+      <div class="clinic-card">
+        <span class="clinic-card-tag">Urologie & DaVinci Robotik</span>
+        <h3>Klinik Golzheim Düsseldorf</h3>
+        <p>Eines der führenden urologischen Zentren Europas: Prostatakarzinomzentrum, Nierenzentrum und rekonstruktive Urologie.</p>
+        <a href="javascript:openWithQuery('Urologie Düsseldorf')">Fachbereich öffnen &rarr;</a>
+      </div>
+
+      <div class="clinic-card">
+        <span class="clinic-card-tag">Orthopädie & Gelenke</span>
+        <h3>Paracelsus Klinik Bremen</h3>
+        <p>Zentrum für Endoprothetik, Sporttraumatologie, Wirbelsäulenchirurgie und multimodale Schmerztherapie.</p>
+        <a href="javascript:openWithQuery('Orthopädie Bremen')">Fachbereich öffnen &rarr;</a>
+      </div>
+
+      <div class="clinic-card">
+        <span class="clinic-card-tag">Akut- & Notfallmedizin</span>
+        <h3>Klinik Henstedt-Ulzburg</h3>
+        <p>Zentrale 24/7 Notaufnahme (ZNA), Allgemeinchirurgie und Innere Medizin für den Raum Hamburg und Süd-Schleswig-Holstein.</p>
+        <a href="javascript:openWithQuery('Notaufnahme Henstedt-Ulzburg')">Fachbereich öffnen &rarr;</a>
+      </div>
+    </div>
+  </main>
+
+  <!-- =========================================================================
+       Floating Paracelsus Navigator Widget
+       ========================================================================= -->
+
+  <!-- 1. Floating Launcher Button -->
+  <button class="paracelsus-chat-launcher" id="chatLauncher" onclick="toggleChat()" aria-label="Wegweiser öffnen">
+    <div class="launcher-icon-wrap">
+      <img src="assets/bildmarke_p.png" alt="Paracelsus P">
+    </div>
+    <div class="launcher-text-wrap">
+      <span class="launcher-label">Klinik-Wegweiser</span>
+      <span class="launcher-sublabel">Fachbereich finden &bull; Online</span>
+    </div>
+  </button>
+
+  <!-- 2. Chatbot Drawer Window -->
+  <div class="paracelsus-chat-window" id="chatWindow" role="dialog" aria-modal="true" aria-labelledby="chatHeaderTitle">
+    
+    <!-- Widget Header -->
+    <div class="pc-header">
+      <div class="pc-header-brand">
+        <div class="pc-brand-p">
+          <img src="assets/bildmarke_p.png" alt="P">
+        </div>
+        <div class="pc-header-info">
+          <h4 id="chatHeaderTitle">Paracelsus Wegweiser</h4>
+          <span>Digitaler Lotsendienst</span>
+        </div>
+      </div>
+      <button class="pc-close-btn" onclick="toggleChat(false)" aria-label="Schließen">&times;</button>
+    </div>
+
+    <!-- Safety Disclaimer Bar -->
+    <div class="pc-safety-bar">
+      <span>Kein Notfalldienst &bull; Reiner Wegweiser</span>
+      <a href="tel:112" class="pc-emergency-badge" onclick="engine.analytics.recordClick('emergency', '112')">Notruf 112</a>
+    </div>
+
+    <!-- DSGVO & MDR Opt-In Notice -->
+    <div class="pc-privacy-notice">
+      🔒 <strong>Datenschutz & MDR-Hinweis:</strong> Reiner Orientierungsdienst ohne medizinische Diagnostik. Keine Klarnamen eingeben. Suchbegriffe werden streng anonymisiert ausgewertet.
+    </div>
+
+    <!-- Message Stream -->
+    <div class="pc-messages-area" id="pcMessages" role="log" aria-live="polite">
+      <div class="pc-msg bot">
+        Guten Tag! Ich bin der digitale Wegweiser der Paracelsus Kliniken. Ich helfe Ihnen, direkt den richtigen Fachbereich, den passenden Klinikstandort oder Ihren Ansprechpartner zu finden.
+        <br><br>
+        <strong>Wobei können wir Ihnen heute helfen?</strong>
+        <div class="pc-chips">
+          <button class="pc-chip" onclick="handleChipClick('Parkinson & Bewegungsstörungen')">Parkinson / Neurologie</button>
+          <button class="pc-chip" onclick="handleChipClick('Prostata & Urologie')">Prostata / Urologie</button>
+          <button class="pc-chip" onclick="handleChipClick('Gelenke, Knie & Hüfte')">Orthopädie / Gelenke</button>
+          <button class="pc-chip" onclick="handleChipClick('Zentrale Notaufnahme')">Notaufnahme</button>
+          <button class="pc-chip" onclick="handleChipClick('Checkliste für den Klinikaufenthalt')">Koffer-Checkliste</button>
+          <button class="pc-chip" onclick="handleChipClick('Karriere und Jobs')">Karriere / Jobs</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Input Bar with Voice Support -->
+    <form class="pc-input-bar" id="pcForm" onsubmit="handleFormSubmit(event)">
+      <input 
+        type="text" 
+        id="pcInput" 
+        placeholder="Beschwerde, Fachgebiet oder Stadt eingeben..." 
+        autocomplete="off"
+        aria-label="Suchanfrage eingeben"
+      >
+      <button type="button" class="pc-voice-btn" id="voiceSearchBtn" title="Spracheingabe starten" aria-label="Spracheingabe starten" onclick="toggleVoiceInput()">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor">
+          <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+          <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
+      </button>
+      <button type="submit" class="pc-send-btn" aria-label="Senden">
+        <svg viewBox="0 0 24 24">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+
+  <!-- =========================================================================
+       Marketing & Analytics Modal (Echtzeit-Auswertung für Simon & Team)
+       ========================================================================= -->
+  <div class="analytics-modal-backdrop" id="analyticsModal" onclick="if(event.target===this) closeAnalyticsModal()">
+    <div class="analytics-modal-card">
+      <div class="analytics-modal-header">
+        <div>
+          <div class="analytics-modal-title">📈 Marketing & Management Dashboard</div>
+          <p style="font-size: 13px; color: var(--salbei); margin-top: 2px;">
+            DSGVO Art. 9 konforme Live-Metriken & Content-Gap-Analyse (Keine Patientendaten gespeichert)
+          </p>
+        </div>
+        <button class="analytics-close-btn" onclick="closeAnalyticsModal()">&times;</button>
+      </div>
+
+      <!-- Stat Counters -->
+      <div class="analytics-stat-grid">
+        <div class="stat-box">
+          <div class="stat-number" id="mTotalQueries">0</div>
+          <div class="stat-label">Anfragen gesamt</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" style="color: #c62828;" id="mEmergencyAlerts">0</div>
+          <div class="stat-label">112-Notfälle abgefangen</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" style="color: var(--salbei);" id="mLinkClicks">0</div>
+          <div class="stat-label">Generierte Klicks</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" id="mGapsCount">0</div>
+          <div class="stat-label">Erkannte Content-Gaps</div>
+        </div>
+      </div>
+
+      <!-- Split Details -->
+      <div class="analytics-split">
+        <!-- Top Vermittelte Kliniken -->
+        <div class="analytics-panel">
+          <h4>🏥 Vermittelte Standorte <span>Anzahl</span></h4>
+          <ul class="analytics-list" id="mClinicList">
+            <li style="color: #888;">Noch keine Standorte geroutet.</li>
+          </ul>
+        </div>
+
+        <!-- Suchthemen / Intents -->
+        <div class="analytics-panel">
+          <h4>🎯 Gefragte Kategorien <span>Anzahl</span></h4>
+          <ul class="analytics-list" id="mIntentList">
+            <li style="color: #888;">Noch keine Kategorien erfasst.</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- Content-Gaps Box -->
+      <div class="analytics-panel" style="margin-top: 18px;">
+        <h4>
+          💡 Content-Gaps für SEO & Website-Ausbau
+          <span style="font-size: 11px; font-weight: normal; color: var(--salbei);">Ungedeckte Patienten-Suchmuster</span>
+        </h4>
+        <div id="mGapPills" style="margin-top: 8px;">
+          <span style="font-size: 12px; color: #888;">Keine ungelösten Anfragen erfasst.</span>
+        </div>
+      </div>
+
+      <!-- UTM Info Box -->
+      <div style="margin-top: 18px; padding: 14px; background: #eef6f4; border-radius: 10px; font-size: 12px; color: var(--gruen);">
+        <strong>🔗 Automatisches Kampagnen-Tracking:</strong> Alle vom Bot ausgegebenen Links enthalten automatische UTM-Parameter (<code>utm_source=paracelsus_wegweiser&utm_medium=chatbot</code>), damit Besuche in Google Analytics oder Matomo messbar sind.
+      </div>
+    </div>
+  </div>
+
+  <!-- =========================================================================
+       MDR & DSGVO Compliance Zertifikat Modal (Für Klinikleitung & Justiziariat)
+       ========================================================================= -->
+  <div class="analytics-modal-backdrop" id="complianceModal" onclick="if(event.target===this) closeComplianceModal()">
+    <div class="analytics-modal-card">
+      <div class="analytics-modal-header">
+        <div>
+          <div class="analytics-modal-title">🛡️ Rechtliche Compliance & MDR-Gutachten</div>
+          <p style="font-size: 13px; color: var(--salbei); margin-top: 2px;">
+            Sicherheits- und Rechtsaudit für die Geschäftsführung der Paracelsus Kliniken
+          </p>
+        </div>
+        <button class="analytics-close-btn" onclick="closeComplianceModal()">&times;</button>
+      </div>
+
+      <div style="font-size: 14px; line-height: 1.6; color: var(--gruen);">
+        <h4 style="margin-bottom: 8px;">1. Abgrenzung zur EU-Medizinprodukteverordnung (MDR 2017/745)</h4>
+        <p style="margin-bottom: 16px;">
+          Der Paracelsus Wegweiser ist <strong>kein Medizinprodukt</strong> nach Art. 2 Abs. 1 MDR. Die Software stellt weder Diagnosen noch empfiehlt sie medikamentöse Therapien. Sie fungiert ausschließlich als digitaler Lotsendienst und Suchhilfe für bestehende Klinikstrukturen und Kontaktdaten.
+        </p>
+
+        <h4 style="margin-bottom: 8px;">2. Datenschutz gemäß Art. 9 DSGVO (Gesundheitsdaten)</h4>
+        <p style="margin-bottom: 16px;">
+          Es werden <strong>keine personenbezogenen Patientendaten gespeichert</strong>. Ein mehrstufiger PII-Scrubber (Personally Identifiable Information) entfernt vor jeder internen Verarbeitung automatisch Namen, Telefonnummern, E-Mails und Geburtsdaten. Das System speichert ausschließlich aggregierte Zähler (z. B. Standort-Klicks).
+        </p>
+
+        <h4 style="margin-bottom: 8px;">3. Notfall-Triage & Haftungsausschluss</h4>
+        <p style="margin-bottom: 16px;">
+          Bei Eingabe vital gefährdender Symptome (Brustschmerz, FAST-Schlaganfallsymptome, akute Atemnot) blockiert das System unverzüglich die Regelführung und weist mit signalrotem Alarm auf den Notruf 112 hin. Ein dauerhafter Disclaimer sichert die Klinik rechtlich ab.
+        </p>
+
+        <h4 style="margin-bottom: 8px;">4. Bereitstellung & Hosting</h4>
+        <p>
+          Das System kann vollständig clientseitig im Rechenzentrum der Paracelsus-Website gehostet werden. Für optionale KI-Erweiterungen werden ausschließlich DSGVO-zertifizierte EU-Server (Region Frankfurt) angebunden.
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="data/standorte.js"></script>
+  <script src="src/bot-engine.js"></script>
+  <script>
+    const engine = new ParacelsusBotEngine(window.PARACELSUS_STANDORTE || []);
+    const chatWindow = document.getElementById("chatWindow");
+    const messagesArea = document.getElementById("pcMessages");
+    const chatInput = document.getElementById("pcInput");
+    const voiceBtn = document.getElementById("voiceSearchBtn");
+
+    function toggleChat(forceState) {
+      if (typeof forceState === "boolean") {
+        if (forceState) chatWindow.classList.remove("closed");
+        else chatWindow.classList.add("closed");
+      } else {
+        chatWindow.classList.toggle("closed");
+      }
+
+      if (!chatWindow.classList.contains("closed")) {
+        setTimeout(() => chatInput.focus(), 250);
+      }
+    }
+
+    // Keyboard ESC schließt Chat
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "Escape") {
+        if (!chatWindow.classList.contains("closed")) toggleChat(false);
+        closeAnalyticsModal();
+        closeComplianceModal();
+      }
+    });
+
+    function openWithQuery(queryText) {
+      toggleChat(true);
+      chatInput.value = queryText;
+      handleFormSubmit();
+    }
+
+    function triggerSearchFromHero() {
+      const heroInput = document.getElementById("heroSearchInput");
+      const val = heroInput.value.trim();
+      if (!val) return;
+      openWithQuery(val);
+      heroInput.value = "";
+    }
+
+    function handleChipClick(chipText) {
+      chatInput.value = chipText;
+      handleFormSubmit();
+    }
+
+    // 1-Click Executive Scenarios
+    function triggerScenario(type) {
+      toggleChat(true);
+      if (type === "notfall") {
+        chatInput.value = "Ich habe seit 10 Minuten schwere Brustschmerzen und Atemnot";
+      } else if (type === "davinci") {
+        chatInput.value = "Ich suche ein zertifiziertes Zentrum für DaVinci Roboter Prostata-OP in Düsseldorf";
+      } else if (type === "parkinson") {
+        chatInput.value = "Meine Mutter zittert stark an den Händen, gibt es eine Parkinson Fachklinik in Kassel?";
+      } else if (type === "checkliste") {
+        chatInput.value = "Was muss ich zur stationären Aufnahme in die Klinik mitbringen?";
+      } else if (type === "karriere") {
+        chatInput.value = "Ich möchte mich als Pflegefachkraft bewerben";
+      }
+      handleFormSubmit();
+    }
+
+    function appendUserMessage(text) {
+      const msg = document.createElement("div");
+      msg.className = "pc-msg user";
+      msg.textContent = text;
+      messagesArea.appendChild(msg);
+      scrollToBottom();
+    }
+
+    function appendBotResponse(res) {
+      const msg = document.createElement("div");
+
+      // 1. Notfall
+      if (res.type === "emergency") {
+        msg.className = "pc-msg emergency-box";
+        msg.innerHTML = `
+          <div class="pc-emergency-head">🚨 ${res.alertTitle}</div>
+          <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">${res.message}</p>
+          <p style="font-size: 13px; line-height: 1.45; margin-bottom: 10px;">${res.guidance}</p>
+          <a href="tel:${res.emergencyCall}" class="pc-emergency-call-btn" onclick="engine.analytics.recordClick('emergency', '${res.emergencyCall}')">☎️ ${res.actionText}</a>
+          <p style="font-size: 11px; margin-top: 10px; opacity: 0.85;">${res.secondaryNotice}</p>
+        `;
+        messagesArea.appendChild(msg);
+        scrollToBottom();
+        return;
+      }
+
+      // 2. Nicht angebotene Fachbereiche
+      if (res.type === "unsupported") {
+        msg.className = "pc-msg unsupported-box";
+        let html = `<strong>${res.title}</strong><br>${res.message}<br><br>${res.recommendation}`;
+        html += `<br><a href="tel:116117" class="pc-hotline-btn" onclick="engine.analytics.recordClick('hotline', '116117')">📞 Ärztlicher Bereitschaftsdienst: 116 117</a>`;
+        if (res.chips && res.chips.length > 0) {
+          html += `<div class="pc-chips">`;
+          res.chips.forEach(c => {
+            html += `<button class="pc-chip" onclick="handleChipClick('${c}')">${c}</button>`;
+          });
+          html += `</div>`;
+        }
+        msg.innerHTML = html;
+        messagesArea.appendChild(msg);
+        scrollToBottom();
+        return;
+      }
+
+      // 3. Koffer-Checkliste
+      if (res.type === "checklist") {
+        msg.className = "pc-msg bot";
+        let html = `<strong>📋 ${res.title}</strong><br>${res.message}<ul class="pc-clinic-highlights" style="margin-top: 10px;">`;
+        res.checklistItems.forEach(item => {
+          html += `<li>${item}</li>`;
+        });
+        html += `</ul>`;
+        if (res.chips && res.chips.length > 0) {
+          html += `<div class="pc-chips">`;
+          res.chips.forEach(c => {
+            html += `<button class="pc-chip" onclick="handleChipClick('${c}')">${c}</button>`;
+          });
+          html += `</div>`;
+        }
+        msg.innerHTML = html;
+        messagesArea.appendChild(msg);
+        scrollToBottom();
+        return;
+      }
+
+      // 4. Normales Routing & Matching
+      msg.className = "pc-msg bot";
+      let html = `<strong>${res.title || "Paracelsus Wegweiser"}</strong><br>${res.message}`;
+
+      if (res.clinic) {
+        html += `
+          <div class="pc-clinic-card">
+            <div class="pc-clinic-header">
+              <span class="pc-clinic-name">${res.clinic.name}</span>
+              <span class="pc-clinic-location">📍 ${res.clinic.city} &bull; ${res.clinic.type}</span>
+            </div>
+            <ul class="pc-clinic-highlights">
+              ${res.clinic.specialties ? res.clinic.specialties.slice(0, 3).map(s => `<li>${s}</li>`).join("") : ""}
+            </ul>
+            <div class="pc-clinic-actions">
+              <a href="${res.clinic.url}" target="_blank" class="pc-btn-primary" onclick="engine.analytics.recordClick('clinic_url', '${res.clinic.id}')">Klinikseite & Termin &rarr;</a>
+              <a href="tel:${res.clinic.phone}" class="pc-phone-label" onclick="engine.analytics.recordClick('phone', '${res.clinic.id}')">📞 ${res.clinic.phone}</a>
+              ${res.clinic.mapsUrl ? `<a href="${res.clinic.mapsUrl}" target="_blank" class="pc-maps-link" onclick="engine.analytics.recordClick('maps', '${res.clinic.id}')">🗺️ Anfahrt</a>` : ""}
+            </div>
+          </div>
+        `;
+      }
+
+      if (res.links && res.links.length > 0) {
+        html += `<ul style="margin-top: 10px; padding-left: 18px; font-size: 13px;">`;
+        res.links.forEach(l => {
+          html += `<li><a href="${l.url}" target="_blank" style="color: var(--gruen); font-weight: 700;" onclick="engine.analytics.recordClick('external_link', '${l.label}')">${l.label}</a></li>`;
+        });
+        html += `</ul>`;
+      }
+
+      if (res.chips && res.chips.length > 0) {
+        html += `<div class="pc-chips">`;
+        res.chips.forEach(c => {
+          html += `<button class="pc-chip" onclick="handleChipClick('${c}')">${c}</button>`;
+        });
+        html += `</div>`;
+      }
+
+      msg.innerHTML = html;
+      messagesArea.appendChild(msg);
+      scrollToBottom();
+    }
+
+    function handleFormSubmit(e) {
+      if (e) e.preventDefault();
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      appendUserMessage(text);
+      chatInput.value = "";
+
+      setTimeout(() => {
+        const result = engine.processQuery(text);
+        appendBotResponse(result);
+      }, 300);
+    }
+
+    function scrollToBottom() {
+      messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+
+    // Web Speech API Spracheingabe
+    let recognition = null;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRecognition) {
+      recognition = new SpeechRecognition();
+      recognition.lang = "de-DE";
+      recognition.interimResults = false;
+      recognition.onstart = () => {
+        voiceBtn.classList.add("recording");
+        chatInput.placeholder = "Ich höre zu...";
+      };
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        chatInput.value = transcript;
+        handleFormSubmit();
+      };
+      recognition.onerror = () => {
+        voiceBtn.classList.remove("recording");
+        chatInput.placeholder = "Beschwerde, Fachgebiet oder Stadt eingeben...";
+      };
+      recognition.onend = () => {
+        voiceBtn.classList.remove("recording");
+        chatInput.placeholder = "Beschwerde, Fachgebiet oder Stadt eingeben...";
+      };
+    } else {
+      voiceBtn.style.display = "none";
+    }
+
+    function toggleVoiceInput() {
+      if (!recognition) return;
+      try {
+        recognition.start();
+      } catch (err) {
+        recognition.stop();
+      }
+    }
+
+    // Modal Funktionen
+    function openAnalyticsModal() {
+      const metrics = engine.analytics.getMetrics();
+      document.getElementById("mTotalQueries").innerText = metrics.totalQueries;
+      document.getElementById("mEmergencyAlerts").innerText = metrics.emergencyAlerts;
+      document.getElementById("mLinkClicks").innerText = metrics.linkClicks;
+      document.getElementById("mGapsCount").innerText = (metrics.contentGaps || []).length;
+
+      // Standorte rendern
+      const clinicListEl = document.getElementById("mClinicList");
+      const cKeys = Object.keys(metrics.clinicRoutingCounts || {});
+      if (cKeys.length === 0) {
+        clinicListEl.innerHTML = `<li style="color: #888;">Noch keine Standorte geroutet.</li>`;
+      } else {
+        clinicListEl.innerHTML = cKeys.map(k => `<li><strong>${k}</strong> <span>${metrics.clinicRoutingCounts[k]}x</span></li>`).join("");
+      }
+
+      // Intents rendern
+      const intentListEl = document.getElementById("mIntentList");
+      const iKeys = Object.keys(metrics.intentCounts || {});
+      if (iKeys.length === 0) {
+        intentListEl.innerHTML = `<li style="color: #888;">Noch keine Kategorien erfasst.</li>`;
+      } else {
+        intentListEl.innerHTML = iKeys.map(k => `<li><strong>${k}</strong> <span>${metrics.intentCounts[k]}x</span></li>`).join("");
+      }
+
+      // Content-Gaps rendern
+      const gapPillsEl = document.getElementById("mGapPills");
+      const gaps = metrics.contentGaps || [];
+      if (gaps.length === 0) {
+        gapPillsEl.innerHTML = `<span style="font-size: 12px; color: #888;">Keine ungelösten Anfragen erfasst.</span>`;
+      } else {
+        gapPillsEl.innerHTML = gaps.map(g => `<span class="gap-pill">„${g}“</span>`).join("");
+      }
+
+      document.getElementById("analyticsModal").classList.add("active");
+    }
+
+    function closeAnalyticsModal() {
+      document.getElementById("analyticsModal").classList.remove("active");
+    }
+
+    function openComplianceModal() {
+      document.getElementById("complianceModal").classList.add("active");
+    }
+
+    function closeComplianceModal() {
+      document.getElementById("complianceModal").classList.remove("active");
+    }
+  </script>
+</body>
+</html>

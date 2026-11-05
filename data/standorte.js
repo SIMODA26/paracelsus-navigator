@@ -1,0 +1,227 @@
+window.PARACELSUS_STANDORTE = [
+  {
+    "id": "duesseldorf-golzheim",
+    "name": "Paracelsus Klinik Golzheim Düsseldorf",
+    "type": "Urologische Fachklinik (Europäisches Spitzenzentrum)",
+    "city": "Düsseldorf",
+    "state": "Nordrhein-Westfalen",
+    "address": "Friedrich-Lau-Straße 11, 40474 Düsseldorf",
+    "phone": "+49 211 4385-0",
+    "emergencyPhone": "+49 211 4385-111",
+    "admissionPhone": "+49 211 4385-200",
+    "visitingHours": "Täglich 14:00 – 19:00 Uhr (Intensivstation nach Absprache)",
+    "url": "https://www.paracelsus-kliniken.de/duesseldorf/",
+    "mapsUrl": "https://maps.google.com/?q=Paracelsus+Klinik+Golzheim+Düsseldorf",
+    "specialties": [
+      "Zertifiziertes Prostatakarzinomzentrum (DKG)",
+      "DaVinci Xi Robotik-Chirurgie",
+      "Nieren- & Steinzentrum (Laser-Lithotripsie)",
+      "Rekonstruktive Urologie & Andrologie / Prothetik",
+      "Blasenkarzinomzentrum & Kontinenztherapie"
+    ],
+    "keywords": [
+      "prostata", "urologie", "prostatakrebs", "bph", "prostatavergrößerung",
+      "da vinci", "roboter", "robotik", "harnstein", "nierenstein", "niere",
+      "blase", "blasenkrebs", "andrologie", "erektionsstörung", "erektile dysfunktion",
+      "penisprothese", "inkontinenz", "harnleiter", "düsseldorf", "nrw", "köln", "ruhrgebiet"
+    ],
+    "checklist": [
+      "Einweisungsschein des behandelnden Urologen / Hausarztes",
+      "Krankenkassenkarte (eGK) & ggf. Befreiungsausweis",
+      "Aktuelle Laborbefunde (PSA-Wert, Nierenwerte, Gerinnung)",
+      "Medikamentenplan (Bundeseinheitlicher Medikamentenplan)",
+      "Bequeme Kleidung & persönliche Hygieneartikel"
+    ]
+  },
+  {
+    "id": "kassel-elena",
+    "name": "Paracelsus-Elena-Klinik Kassel",
+    "type": "Neurologische Fachklinik (Internationales Parkinson-Zentrum)",
+    "city": "Kassel",
+    "state": "Hessen",
+    "address": "Klinikstraße 16, 34128 Kassel",
+    "phone": "+49 561 6009-0",
+    "emergencyPhone": "+49 561 6009-200",
+    "admissionPhone": "+49 561 6009-120",
+    "visitingHours": "Mo–So 10:00 – 18:00 Uhr",
+    "url": "https://www.paracelsus-kliniken.de/kassel-elena/",
+    "mapsUrl": "https://maps.google.com/?q=Paracelsus-Elena-Klinik+Kassel",
+    "specialties": [
+      "Parkinson-Komplexbehandlung (Stationär & Teilstationär)",
+      "Differenzialdiagnostik von Bewegungsstörungen",
+      "Tiefe Hirnstimulation (THS) Vor- & Nachsorge",
+      "Dystonien, Multisystematrophie (MSA) & Atypische Parkinsonsyndrome",
+      "Spezialisierte Parkinson-Physiotherapie, Ergo- & Logopädie"
+    ],
+    "keywords": [
+      "parkinson", "morbus parkinson", "zittern", "tremor", "bewegungsstörung",
+      "schüttellähmung", "dystonie", "steifigkeit", "rigor", "gangstörung",
+      "hirnstimulation", "ths", "neurologie", "elena klinik", "kassel",
+      "hessen", "göttingen", "multisystematrophie", "restless legs"
+    ],
+    "checklist": [
+      "Facharzt-Überweisung (Neurologe / Nervenarzt)",
+      "Aktuelle neurologische Vorbefunde & MRT-/CT-Aufnahmen (auf CD)",
+      "L-Dopa-Tagebuch / Dokumentation der Beweglichkeit",
+      "Vollständige Liste aller Dauermedikamente",
+      "Festes Schuhwerk für Gangübungen & bequeme Sportkleidung"
+    ]
+  },
+  {
+    "id": "bremen",
+    "name": "Paracelsus Klinik Bremen",
+    "type": "Akut- und Fachklinik (Gelenk-, Wirbelsäulen- & Schmerzzentrum)",
+    "city": "Bremen",
+    "state": "Bremen",
+    "address": "In der Vahr 65, 28329 Bremen",
+    "phone": "+49 421 4683-0",
+    "emergencyPhone": "+49 421 4683-333",
+    "admissionPhone": "+49 421 4683-150",
+    "visitingHours": "Täglich 14:00 – 19:30 Uhr",
+    "url": "https://www.paracelsus-kliniken.de/bremen/",
+    "mapsUrl": "https://maps.google.com/?q=Paracelsus+Klinik+Bremen",
+    "specialties": [
+      "Endoprothetikzentrum (Knie- & Hüftgelenkersatz, minimalinvasiv)",
+      "Wirbelsäulenchirurgie & Neurochirurgie (Bandscheibenvorfälle)",
+      "Multimodale Schmerztherapie (Chronische Schmerzen)",
+      "Sporttraumatologie & Arthroskopie (Kreuzband, Meniskus)",
+      "Neurologische Frührehabilitation & Akutneurologie"
+    ],
+    "keywords": [
+      "bremen", "orthopädie", "knie", "hüfte", "gelenkersatz", "endoprothese",
+      "gelenk", "arthrose", "meniskus", "kreuzband", "wirbelsäule",
+      "bandscheibe", "bandscheibenvorfall", "rückenschmerzen", "schmerztherapie",
+      "chronische schmerzen", "neurochirurgie", "sportverletzung"
+    ],
+    "checklist": [
+      "Krankenhauseinweisung vom Orthopäden / Chirurgen",
+      "Röntgen-, MRT- oder CT-Bilder der betroffenen Gelenke",
+      "Allergiepass & Impfpass (falls vorhanden)",
+      "Reha-Antragsunterlagen (falls Anschlussheilbehandlung geplant)",
+      "Unterarmgehstützen (falls bereits verordnet)"
+    ]
+  },
+  {
+    "id": "henstedt-ulzburg",
+    "name": "Paracelsus Klinik Henstedt-Ulzburg",
+    "type": "Krankenhaus der Grund- und Regelversorgung (Akut-Notaufnahme)",
+    "city": "Henstedt-Ulzburg",
+    "state": "Schleswig-Holstein",
+    "address": "Wilstedter Straße 134, 24558 Henstedt-Ulzburg",
+    "phone": "+49 4193 70-0",
+    "emergencyPhone": "+49 4193 70-4444",
+    "admissionPhone": "+49 4193 70-210",
+    "visitingHours": "Täglich 14:00 – 19:00 Uhr (Zentrale Notaufnahme 24/7 besetzt)",
+    "url": "https://www.paracelsus-kliniken.de/henstedt-ulzburg/",
+    "mapsUrl": "https://maps.google.com/?q=Paracelsus+Klinik+Henstedt-Ulzburg",
+    "specialties": [
+      "Zentrale Notaufnahme (ZNA) 24/7 Rund-um-die-Uhr Versorgung",
+      "Allgemein- und Viszeralchirurgie (Bauch-, Galle-, Darmchirurgie)",
+      "Innere Medizin & Kardiologie / Gastroenterologie",
+      "Unfallchirurgie & Orthopädische Chirurgie",
+      "Anästhesiologie & Intensivmedizin"
+    ],
+    "keywords": [
+      "henstedt-ulzburg", "hamburg", "norderstedt", "kaltenkirchen", "schleswig-holstein",
+      "notaufnahme", "notfall", "akut", "bauchschmerzen", "blinddarm", "galle",
+      "leistenbruch", "herz", "kardiologie", "magen", "darm", "darmspiegelung",
+      "unfall", "knochenbruch", "fraktur"
+    ],
+    "checklist": [
+      "Versichertenkarte & Personalausweis",
+      "Einweisungsschein oder Notfallvorstellung",
+      "Bisherige Entlassungsbriefe & Vorbefunde",
+      "Aktuelle Medikamente in Originalverpackung",
+      "Patientenverfügung / Vorsorgevollmacht (falls vorhanden)"
+    ]
+  },
+  {
+    "id": "langenhagen-silbersee",
+    "name": "Paracelsus Klinik am Silbersee Langenhagen",
+    "type": "Fachklinik für den Bewegungsapparat & Innere Medizin",
+    "city": "Langenhagen (Hannover)",
+    "state": "Niedersachsen",
+    "address": "Oestener Weg 25, 30855 Langenhagen",
+    "phone": "+49 511 7794-0",
+    "emergencyPhone": "+49 511 7794-112",
+    "admissionPhone": "+49 511 7794-220",
+    "visitingHours": "Täglich 14:00 – 18:30 Uhr",
+    "url": "https://www.paracelsus-kliniken.de/langenhagen/",
+    "mapsUrl": "https://maps.google.com/?q=Paracelsus+Klinik+am+Silbersee+Langenhagen",
+    "specialties": [
+      "Zentrum für Gelenkchirurgie & Endoprothetik",
+      "Konservative Orthopädie & Schmerztherapie",
+      "Allgemeine Innere Medizin & Basisnotfallversorgung",
+      "Ambulantes Operationszentrum (AOZ)"
+    ],
+    "keywords": [
+      "langenhagen", "hannover", "silbersee", "orthopädie", "knie",
+      "hüfte", "schulter", "gelenkersatz", "endoprothetik", "arthrose",
+      "innere medizin", "niedersachsen"
+    ],
+    "checklist": [
+      "Krankenhauseinweisung",
+      "Versichertenkarte",
+      "Aktuelle Röntgen- / Schnittbilddiagnostik",
+      "Medikamentenplan"
+    ]
+  },
+  {
+    "id": "schoeneck",
+    "name": "Paracelsus Klinik Schöneck",
+    "type": "Akutkrankenhaus der Regelversorgung",
+    "city": "Schöneck",
+    "state": "Sachsen (Vogtland)",
+    "address": "Albert-Schweitzer-Straße 2, 08261 Schöneck/Vogtl.",
+    "phone": "+49 37464 85-0",
+    "emergencyPhone": "+49 37464 85-115",
+    "admissionPhone": "+49 37464 85-230",
+    "visitingHours": "Täglich 14:00 – 18:00 Uhr",
+    "url": "https://www.paracelsus-kliniken.de/schoeneck/",
+    "mapsUrl": "https://maps.google.com/?q=Paracelsus+Klinik+Schöneck",
+    "specialties": [
+      "Regionale Grund- & Regelversorgung im oberen Vogtland",
+      "Innere Medizin & Notfallbehandlung",
+      "Allgemein-, Viszeral- & Unfallchirurgie",
+      "Ambulante Versorgung im MVZ"
+    ],
+    "keywords": [
+      "schöneck", "vogtland", "plauen", "sachsen", "innere medizin",
+      "chirurgie", "unfall", "notfall", "grundversorgung"
+    ],
+    "checklist": [
+      "Einweisungsschein oder Notaufnahme",
+      "Versichertenkarte",
+      "Medikamentenübersicht"
+    ]
+  },
+  {
+    "id": "muenchen",
+    "name": "Paracelsus Klinik München",
+    "type": "Operative Fachklinik & Belegarztzentrum",
+    "city": "München",
+    "state": "Bayern",
+    "address": "Klingsorstraße 5, 81927 München (Bogenhausen)",
+    "phone": "+49 89 92005-0",
+    "emergencyPhone": "+49 89 92005-110",
+    "admissionPhone": "+49 89 92005-130",
+    "visitingHours": "Täglich 14:00 – 19:00 Uhr",
+    "url": "https://www.paracelsus-kliniken.de/muenchen/",
+    "mapsUrl": "https://maps.google.com/?q=Paracelsus+Klinik+München",
+    "specialties": [
+      "Spezialisierte orthopädische Chirurgie & Sportmedizin",
+      "Wirbelsäulenoperationen & Gelenkspiegelungen",
+      "Renommiertes Belegarztsystem für individuelle Betreuung",
+      "Modernste Anästhesie & Schmerztherapie"
+    ],
+    "keywords": [
+      "münchen", "bayern", "bogenhausen", "belegarzt", "orthopädie",
+      "sportchirurgie", "kreuzband", "meniskus", "wirbelsäule"
+    ],
+    "checklist": [
+      "Einweisung des betreuenden Belegarztes",
+      "Versichertenkarte",
+      "Befunde & Bildgebung der Facharztpraxis"
+    ]
+  }
+];

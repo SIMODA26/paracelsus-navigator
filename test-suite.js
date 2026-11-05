@@ -1,0 +1,148 @@
+/**
+ * Paracelsus Kliniken - Comprehensive Automated Verification Test Suite
+ * Senior Developer Audit
+ */
+
+const assert = require("assert");
+const { ParacelsusBotEngine, scrubPII, buildMarketingUrl, EMERGENCY_CATEGORIES } = require("./src/bot-engine.js");
+const standorteData = require("./data/standorte.json");
+
+console.log("=================================================");
+console.log("🏥 STARTING PARACELSUS CLINICAL & QA TEST SUITE");
+console.log("=================================================");
+
+const engine = new ParacelsusBotEngine(standorteData);
+let testsPassed = 0;
+let testsFailed = 0;
+
+function runTest(name, fn) {
+  try {
+    fn();
+    console.log(`  ✅ [PASS] ${name}`);
+    testsPassed++;
+  } catch (err) {
+    console.error(`  ❌ [FAIL] ${name}: ${err.message}`);
+    testsFailed++;
+  }
+}
+
+// 1. PII SCRUBBING TESTS (DSGVO Art. 9)
+runTest("PII Scrubber: Strips Names", () => {
+  const input = "Mein Name ist Dr. Thomas Müller und ich brauche Hilfe";
+  const output = scrubPII(input);
+  assert(!output.includes("Thomas"), "Name was not removed");
+  assert(output.includes("[NAME ANONYMISIERT]"), "Placeholder missing");
+});
+
+runTest("PII Scrubber: Strips Phone Numbers", () => {
+  const input = "Rückruf unter 0171-4567890 oder +49 40 12345678";
+  const output = scrubPII(input);
+  assert(!output.includes("0171"), "Phone was not removed");
+  assert(output.includes("[TELEFON ANONYMISIERT]"), "Placeholder missing");
+});
+
+runTest("PII Scrubber: Strips Email Addresses", () => {
+  const input = "Senden Sie den Befund an patient.test@web.de danke";
+  const output = scrubPII(input);
+  assert(!output.includes("patient.test@web.de"), "Email was not removed");
+  assert(output.includes("[E-MAIL ANONYMISIERT]"), "Placeholder missing");
+});
+
+runTest("PII Scrubber: Strips Health Insurance Number (Versichertennummer)", () => {
+  const input = "Meine Kassen-Nummer lautet A123456789";
+  const output = scrubPII(input);
+  assert(!output.includes("A123456789"), "Insurance number was not removed");
+  assert(output.includes("[VERSICHERTEN-NR ANONYMISIERT]"), "Placeholder missing");
+});
+
+// 2. EMERGENCY RED FLAG TRIAGE TESTS (112 / Crisis)
+runTest("Emergency Triage: Heart Attack", () => {
+  const res = engine.processQuery("Ich habe seit 20 Minuten stechende Brustschmerzen und Engegefühl");
+  assert.strictEqual(res.type, "emergency");
+  assert.strictEqual(res.emergencyCall, "112");
+  assert(res.alertTitle.includes("HERZINFARKT"));
+});
+
+runTest("Emergency Triage: FAST Stroke Symptoms", () => {
+  const res = engine.processQuery("Mein Mann hat plötzlich einen herabhängenden Mundwinkel und Sprachstörung");
+  assert.strictEqual(res.type, "emergency");
+  assert.strictEqual(res.emergencyCall, "112");
+  assert(res.alertTitle.includes("SCHLAGANFALL"));
+});
+
+runTest("Emergency Triage: Severe Poisoning", () => {
+  const res = engine.processQuery("Kind hat versehentlich Badreiniger geschluckt und Vergiftung");
+  assert.strictEqual(res.type, "emergency");
+  assert.strictEqual(res.emergencyCall, "030 19240");
+});
+
+runTest("Emergency Triage: Mental Health Crisis / Suicide", () => {
+  const res = engine.processQuery("Ich bin lebensmüde und habe Suizidgedanken");
+  assert.strictEqual(res.type, "emergency");
+  assert.strictEqual(res.emergencyCall, "0800 111 0 111");
+});
+
+// 3. NEGATIVE CATALOG & REFERRALS (116 117)
+runTest("Negative Catalog: Obstetrics / Kreißsaal", () => {
+  const res = engine.processQuery("Gibt es bei Ihnen einen Kreißsaal für die Geburt unseres Babys?");
+  assert.strictEqual(res.type, "unsupported");
+  assert(res.title.includes("Geburtshilfe"));
+  assert.strictEqual(res.hotline, "116 117");
+});
+
+runTest("Negative Catalog: Pediatrics / Kinderklinik", () => {
+  const res = engine.processQuery("Haben Sie eine Kinderklinik für meinen 4-jährigen Sohn?");
+  assert.strictEqual(res.type, "unsupported");
+  assert(res.title.includes("Kinder"));
+  assert.strictEqual(res.hotline, "116 117");
+});
+
+// 4. CLINICAL SPECIALTY & ROUTING TESTS
+runTest("Clinical Routing: DaVinci Prostate in Düsseldorf", () => {
+  const res = engine.processQuery("Ich suche ein DaVinci Roboter Zentrum für Prostatakrebs in Düsseldorf");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "duesseldorf-golzheim");
+  assert(res.clinic.url.includes("utm_source=paracelsus_wegweiser"));
+});
+
+runTest("Clinical Routing: Parkinson in Kassel", () => {
+  const res = engine.processQuery("Meine Mutter leidet an Parkinson und starkem Zittern, gibt es Spezialisten in Kassel?");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "kassel-elena");
+  assert(res.clinic.phone.includes("561"), "Phone number does not match Kassel area code");
+});
+
+runTest("Clinical Routing: Joint & Orthopedics in Bremen", () => {
+  const res = engine.processQuery("Brauche ein neues Kniegelenk oder Hüft-Endoprothese in Bremen");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "bremen");
+});
+
+runTest("Clinical Routing: Emergency Surgery Henstedt-Ulzburg", () => {
+  const res = engine.processQuery("Wo ist die Zentrale Notaufnahme in Henstedt-Ulzburg?");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "henstedt-ulzburg");
+});
+
+// 5. PATIENT JOURNEY: CHECKLISTS & VISITING HOURS
+runTest("Patient Journey: Koffer-Checkliste", () => {
+  const res = engine.processQuery("Was muss ich zur stationären Aufnahme alles mitbringen?");
+  assert.strictEqual(res.type, "checklist");
+  assert(res.checklistItems.length >= 4);
+});
+
+// 6. MARKETING & UTM BUILDER
+runTest("Marketing: UTM Builder creates compliant query params", () => {
+  const url = buildMarketingUrl("https://www.paracelsus-kliniken.de/duesseldorf/", "duesseldorf-golzheim", "davinci");
+  assert(url.includes("utm_source=paracelsus_wegweiser"));
+  assert(url.includes("utm_medium=chatbot"));
+  assert(url.includes("utm_campaign=routing_duesseldorf-golzheim"));
+});
+
+console.log("=================================================");
+console.log(`🏁 TEST RESULT: ${testsPassed} Passed, ${testsFailed} Failed`);
+console.log("=================================================");
+
+if (testsFailed > 0) {
+  process.exit(1);
+}
