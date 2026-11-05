@@ -5,6 +5,27 @@
  */
 
 const assert = require("assert");
+
+// Deterministic in-memory storage mock for Node.js test environment
+{
+  const memoryStore = new Map();
+  const mockStorage = {
+    getItem: (k) => memoryStore.has(String(k)) ? memoryStore.get(String(k)) : null,
+    setItem: (k, v) => memoryStore.set(String(k), String(v)),
+    removeItem: (k) => memoryStore.delete(String(k)),
+    clear: () => memoryStore.clear()
+  };
+  try {
+    Object.defineProperty(global, "localStorage", {
+      value: mockStorage,
+      configurable: true,
+      writable: true
+    });
+  } catch (e) {
+    global.localStorage = mockStorage;
+  }
+}
+
 const { ParacelsusBotEngine, scrubPII, buildMarketingUrl, createCalendarEventContent, EMERGENCY_CATEGORIES, REGION_MAPPING, fuzzyContains } = require("./src/bot-engine.js");
 const standorteData = require("./data/standorte.json");
 
@@ -622,6 +643,387 @@ runTest("Precision", "Addiction and alcohol detox routes to Langenhagen am Silbe
   const res = engine.processQuery("Ich suche eine Klinik für Suchttherapie / Alkoholentzug");
   assert.strictEqual(res.type, "match");
   assert.strictEqual(res.clinic.id, "langenhagen-silbersee");
+});
+
+// =============================================================================
+// 14. HARDENED PII SCRUBBING & PRIVACY (DSGVO Art. 9 & Edge Cases)
+// =============================================================================
+runTest("PII_Hardened", "Strips standalone doctor name without Herr/Frau prefix", () => {
+  const input = "Dr. Thomas Müller hat mich an Ihre Klinik überwiesen";
+  const output = scrubPII(input);
+  assert(!output.includes("Thomas Müller"), "Doctor name was not stripped");
+  assert(output.includes("[NAME ANONYMISIERT]"), "Placeholder missing");
+});
+
+runTest("PII_Hardened", "Strips 'Ich bin' name introduction", () => {
+  const input = "Guten Tag, ich bin Peter Schmidt aus Bremen";
+  const output = scrubPII(input);
+  assert(!output.includes("Peter Schmidt"), "Name after 'ich bin' not stripped");
+  assert(output.includes("[NAME ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Strips 'Mein Name lautet' intro variant", () => {
+  const input = "Mein Name lautet Klaus Dieter und ich suche Hilfe";
+  const output = scrubPII(input);
+  assert(!output.includes("Klaus Dieter"), "Name after 'mein Name lautet' not stripped");
+  assert(output.includes("[NAME ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Strips 'Patientin:' prefix with compound female name", () => {
+  const input = "Patientin: Anna-Lena Meyer benötigt einen Termin";
+  const output = scrubPII(input);
+  assert(!output.includes("Anna-Lena Meyer"), "Patientin name not stripped");
+  assert(output.includes("[NAME ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Strips compound hyphenated surnames", () => {
+  const input = "Mein Name ist Herr Schmidt-Kowalski";
+  const output = scrubPII(input);
+  assert(!output.includes("Schmidt-Kowalski"), "Hyphenated surname not stripped");
+  assert(output.includes("[NAME ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Strips ISO-8601 formatted date of birth (YYYY-MM-DD)", () => {
+  const input = "Mein Geburtsdatum ist 1985-07-14";
+  const output = scrubPII(input);
+  assert(!output.includes("1985-07-14"), "ISO date was not stripped");
+  assert(output.includes("[DATUM ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Strips slash-formatted date of birth (DD/MM/YYYY)", () => {
+  const input = "Geboren am 14/07/1985 in Kassel";
+  const output = scrubPII(input);
+  assert(!output.includes("14/07/1985"), "Slash date was not stripped");
+  assert(output.includes("[DATUM ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Strips German written month date (DD. Monat YYYY)", () => {
+  const input = "Geboren am 14. Juli 1985";
+  const output = scrubPII(input);
+  assert(!output.includes("14. Juli 1985"), "Written date was not stripped");
+  assert(output.includes("[DATUM ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Strips German street address with house number", () => {
+  const input = "Meine Adresse ist Friedrichstraße 12 in 40474 Düsseldorf";
+  const output = scrubPII(input);
+  assert(!output.includes("Friedrichstraße 12"), "Street address was not stripped");
+  assert(output.includes("[ADRESSE ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Preserves 5-digit German postal code (PLZ) without masking as phone number", () => {
+  const input = "Meine Postleitzahl ist 40213 Düsseldorf und 01067 Dresden";
+  const output = scrubPII(input);
+  assert(!output.includes("[TELEFON ANONYMISIERT]"), "PLZ incorrectly masked as phone");
+  assert(output.includes("40213"), "PLZ 40213 missing");
+  assert(output.includes("01067"), "PLZ 01067 missing");
+});
+
+runTest("PII_Hardened", "Strips formatted health insurance number with space (KVNR: A 123456789)", () => {
+  const input = "Versichertennummer A 123456789 zur Abrechnung";
+  const output = scrubPII(input);
+  assert(!output.includes("A 123456789"), "Insurance number was not stripped");
+  assert(output.includes("[VERSICHERTEN-NR ANONYMISIERT]"), "Insurance placeholder missing");
+  assert(!output.includes("[TELEFON ANONYMISIERT]"), "Must not mask KVNR as phone");
+});
+
+runTest("PII_Hardened", "Strips decomposed Unicode (NFD) umlaut names without leaving trailing fragments", () => {
+  const nfdInput = "Mein Name ist Herr " + "Müller".normalize("NFD");
+  const output = scrubPII(nfdInput);
+  assert(!output.includes("ller"), "Trailing NFD fragment remained unscrubbed");
+  assert(!output.includes("Müller".normalize("NFD")));
+  assert(output.includes("[NAME ANONYMISIERT]"));
+});
+
+runTest("PII_Hardened", "Preserves clinical non-PII terms, scores, and monetary amounts", () => {
+  const input = "PSA-Wert von 4.5 ng/ml, ICD M54.5 und Zuzahlung 10 € pro Tag seit 3 Wochen";
+  const output = scrubPII(input);
+  assert(output.includes("4.5"), "PSA decimal value was corrupted");
+  assert(output.includes("10 €"), "Co-payment amount was corrupted");
+  assert(output.includes("3 Wochen"), "Duration was corrupted");
+});
+
+// =============================================================================
+// 15. TYPE SAFETY & INPUT ROBUSTNESS
+// =============================================================================
+runTest("TypeSafety_Unicode", "Handles non-string inputs (number, boolean, object, null, undefined) gracefully in scrubPII", () => {
+  assert.strictEqual(scrubPII(12345), "12345");
+  assert.strictEqual(scrubPII(true), "true");
+  assert.strictEqual(scrubPII(null), "");
+  assert.strictEqual(scrubPII(undefined), "");
+  assert.strictEqual(scrubPII({ query: "test" }), "");
+});
+
+runTest("TypeSafety_Unicode", "Handles non-string inputs in engine.processQuery without crashing", () => {
+  assert.doesNotThrow(() => engine.processQuery(12345));
+  assert.doesNotThrow(() => engine.processQuery(true));
+  assert.strictEqual(engine.processQuery(null).type, "empty");
+  assert.strictEqual(engine.processQuery(undefined).type, "empty");
+  assert.strictEqual(engine.processQuery({ test: "data" }).type, "empty");
+});
+
+runTest("TypeSafety_Unicode", "Handles null bytes and control characters safely", () => {
+  const res = engine.processQuery("Parkinson\0Kassel\r\nSpezialist");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "kassel-elena");
+});
+
+runTest("TypeSafety_Unicode", "Processes 10,000 character massive query without stack overflow or timeout", () => {
+  const massive = "Knieschmerzen ".repeat(1000);
+  const start = Date.now();
+  const res = engine.processQuery(massive);
+  const elapsed = Date.now() - start;
+  assert(elapsed < 300, `Massive query took ${elapsed}ms`);
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "bremen");
+});
+
+runTest("TypeSafety_Unicode", "Correctly matches München in decomposed Unicode (NFD)", () => {
+  const nfdQuery = "Klinik in " + "München".normalize("NFD");
+  const res = engine.processQuery(nfdQuery);
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "muenchen");
+});
+
+runTest("TypeSafety_Unicode", "Correctly matches Düsseldorf in decomposed Unicode (NFD)", () => {
+  const nfdQuery = "Spezialist in " + "Düsseldorf".normalize("NFD");
+  const res = engine.processQuery(nfdQuery);
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "duesseldorf-golzheim");
+});
+
+runTest("TypeSafety_Unicode", "Correctly matches Schöneck in decomposed Unicode (NFD)", () => {
+  const nfdQuery = "Krankenhaus in " + "Schöneck".normalize("NFD");
+  const res = engine.processQuery(nfdQuery);
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "schoeneck");
+});
+
+runTest("TypeSafety_Unicode", "Correctly routes regional Köln in decomposed Unicode (NFD)", () => {
+  const nfdQuery = "Urologie nahe " + "Köln".normalize("NFD");
+  const res = engine.processQuery(nfdQuery);
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "duesseldorf-golzheim");
+});
+
+runTest("TypeSafety_Unicode", "Correctly matches NFD inflected medical term (Orthopädie in NFD)", () => {
+  const nfdQuery = "Klinik für " + "Orthopädie".normalize("NFD");
+  const res = engine.processQuery(nfdQuery);
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "bremen");
+});
+
+// =============================================================================
+// 16. SECURITY & URL HARDENING
+// =============================================================================
+runTest("Security_Hardened", "buildMarketingUrl rejects dangerous protocols (javascript:, data:, vbscript:)", () => {
+  assert.strictEqual(buildMarketingUrl("javascript:alert(1)", "kassel", "test"), "#");
+  assert.strictEqual(buildMarketingUrl("data:text/html,<script>alert(1)</script>", "kassel", "test"), "#");
+  assert.strictEqual(buildMarketingUrl("vbscript:msgbox(1)", "kassel", "test"), "#");
+});
+
+runTest("Security_Hardened", "buildMarketingUrl rejects protocol-relative URLs and falls back safely", () => {
+  const res = buildMarketingUrl("//evil.com/phishing", "kassel", "test");
+  assert(!res.startsWith("//evil.com"), "Must not allow protocol-relative phishing URLs");
+});
+
+runTest("Security_Hardened", "buildMarketingUrl performs single parameter encoding without double encoding (%2520)", () => {
+  const res = buildMarketingUrl("https://www.paracelsus-kliniken.de/bremen/", "bremen", "Knie & Hüfte");
+  assert(res.includes("utm_content=Knie+%26+H%C3%BCfte") || res.includes("utm_content=Knie%20%26%20H%C3%BCfte"));
+  assert(!res.includes("%25"), "Double URL encoding detected");
+});
+
+runTest("Security_Hardened", "buildMarketingUrl handles null, undefined, or empty baseUrl gracefully", () => {
+  assert.strictEqual(buildMarketingUrl(null, "bremen", "test"), "#");
+  assert.strictEqual(buildMarketingUrl("", "bremen", "test"), "#");
+});
+
+runTest("Security_Hardened", "createCalendarEventContent handles null and undefined clinic inputs safely", () => {
+  assert.strictEqual(createCalendarEventContent(null), null);
+  assert.strictEqual(createCalendarEventContent(undefined), null);
+});
+
+// =============================================================================
+// 17. CLINICAL NLP TRIAGE & LEMMATIZATION
+// =============================================================================
+runTest("Clinical_NLP", "Greeting de-hijacking: 'Hallo ich suche Parkinson in Kassel' routes to Kassel-Elena", () => {
+  const res = engine.processQuery("Hallo ich suche Parkinson in Kassel");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "kassel-elena");
+});
+
+runTest("Clinical_NLP", "Greeting de-hijacking: 'Guten Tag, wo finde ich die Urologie in Düsseldorf?' routes to Düsseldorf-Golzheim", () => {
+  const res = engine.processQuery("Guten Tag, wo finde ich die Urologie in Düsseldorf?");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "duesseldorf-golzheim");
+});
+
+runTest("Clinical_NLP", "Pure greetings remain info intent (Hallo, Guten Tag, Moin Moin)", () => {
+  const res1 = engine.processQuery("Hallo guten Tag");
+  assert.strictEqual(res1.type, "info");
+  assert(res1.title.includes("Willkommen"));
+  const res2 = engine.processQuery("Moin Moin");
+  assert.strictEqual(res2.type, "info");
+});
+
+runTest("Clinical_NLP", "Lemmatizes 'neurologische' to Neurologie (Kassel-Elena)", () => {
+  const res = engine.processQuery("Ich suche eine neurologische Fachabteilung");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "kassel-elena");
+});
+
+runTest("Clinical_NLP", "Lemmatizes 'orthopädische' to Orthopädie (Bremen)", () => {
+  const res = engine.processQuery("Ich suche eine orthopädische Fachabteilung");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "bremen");
+});
+
+runTest("Clinical_NLP", "Lemmatizes 'urologische' to Urologie (Düsseldorf-Golzheim)", () => {
+  const res = engine.processQuery("Ich suche eine urologische Fachabteilung");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "duesseldorf-golzheim");
+});
+
+runTest("Clinical_NLP", "Lemmatizes 'chirurgische' to Chirurgie (Schöneck / Henstedt-Ulzburg)", () => {
+  const res = engine.processQuery("Ich suche eine chirurgische Fachabteilung");
+  assert.strictEqual(res.type, "match");
+  assert(["schoeneck", "henstedt-ulzburg"].includes(res.clinic.id));
+});
+
+runTest("Clinical_NLP", "Lemmatizes 'internistische' to Innere Medizin (Langenhagen-Silbersee / Schöneck)", () => {
+  const res = engine.processQuery("internistische Rheumatologie");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "langenhagen-silbersee");
+});
+
+runTest("Clinical_NLP", "Short keywords require word boundaries (Darmstadt != Henstedt, Teppich != Bremen, hoffe != Schöneck)", () => {
+  assert(engine.processQuery("Ich wohne in Darmstadt").clinic?.id !== "henstedt-ulzburg", "Darmstadt false match");
+  assert(engine.processQuery("Ich bin auf dem Teppich gestolpert").clinic?.id !== "bremen", "Teppich false match");
+  assert(engine.processQuery("Ich hoffe auf baldige Genesung").clinic?.id !== "schoeneck", "hoffe false match");
+});
+
+runTest("Clinical_NLP", "Reha disambiguation: 'Orthopädische Reha' matches Bremen directly without infinite loop", () => {
+  const res = engine.processQuery("Orthopädische Reha");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "bremen");
+});
+
+// =============================================================================
+// 18. REGULATORY NEUTRALITY & MDR COMPLIANCE (R2 Compliance)
+// =============================================================================
+runTest("Regulatory_MDR", "Zero occurrences of 'Chef', 'Chefarzt', 'Chefärztin', or 'Chefin' across all query outputs", () => {
+  const testQueries = [
+    "Wer ist der Chefarzt?",
+    "Ich möchte den Chefarzt der Urologie sprechen",
+    "Chefarztbehandlung Termin",
+    "Gibt es eine Chefin?",
+    "Termin beim Chef"
+  ];
+
+  for (const q of testQueries) {
+    const res = engine.processQuery(q);
+    const serialized = JSON.stringify(res).toLowerCase();
+    assert(!serialized.includes("chefarzt"), `Contains 'chefarzt': ${q}`);
+    assert(!serialized.includes("chefin"), `Contains 'chefin': ${q}`);
+    assert(!serialized.includes("chefärztin"), `Contains 'chefärztin': ${q}`);
+    assert(!serialized.includes("chefvisite"), `Contains 'chefvisite': ${q}`);
+    assert(!serialized.includes("chefbehandlung"), `Contains 'chefbehandlung': ${q}`);
+  }
+});
+
+runTest("Regulatory_MDR", "Chefarzt inquiry provides neutral guidance on interdisciplinary teams and elective accommodation", () => {
+  const res = engine.processQuery("Chefarztbehandlung Termin");
+  assert.strictEqual(res.type, "info");
+  assert(res.title.includes("Fachärzteteams"));
+  assert(res.message.includes("Wahlleistungen"));
+  assert(res.message.includes("Fachärztinnen und Fachärzten"));
+});
+
+runTest("Regulatory_MDR", "MDR Lotsendienst secondary notice present across match, emergency, fallback, empty, and info responses", () => {
+  const queries = ["Parkinson", "Herzinfarkt", "", "unbekanntes kauderwelsch xyz"];
+  for (const q of queries) {
+    const res = engine.processQuery(q);
+    assert(res.secondaryNotice && res.secondaryNotice.includes("MDR-Hinweis"), `Missing secondaryNotice for '${q}'`);
+  }
+});
+
+runTest("Regulatory_MDR", "Bot never formulates diagnostic statements, cure promises, or prescriptive treatments", () => {
+  const claims = [
+    "Habe ich einen Bandscheibenvorfall?",
+    "Welche Krankheit habe ich?",
+    "Können Sie mich heilen?",
+    "Geben Sie mir ein Rezept für Schmerzmittel"
+  ];
+  for (const q of claims) {
+    const res = engine.processQuery(q);
+    const text = (res.message || "") + " " + (res.guidance || "");
+    assert(!text.toLowerCase().includes("sie leiden an"), "Diagnostic statement detected");
+    assert(!text.toLowerCase().includes("wir garantieren heilung"), "Curative promise detected");
+    assert(!text.toLowerCase().includes("nehmen sie folgendes medikament"), "Prescriptive treatment detected");
+  }
+});
+
+runTest("Regulatory_MDR", "Emergency triage parity: Acute respiratory distress and severe arterial bleeding trigger 112 emergency", () => {
+  const resResp = engine.processQuery("Ich habe schwere Atemnot und ersticke");
+  assert.strictEqual(resResp.type, "emergency");
+  assert.strictEqual(resResp.emergencyCall, "112");
+
+  const resBleed = engine.processQuery("Ich habe eine unstillbare spritzende Blutung am Bein");
+  assert.strictEqual(resBleed.type, "emergency");
+  assert.strictEqual(resBleed.emergencyCall, "112");
+});
+
+// =============================================================================
+// 19. STORAGE & PROTOTYPE SAFETY
+// =============================================================================
+runTest("Storage_Safety", "Corrupted or empty storage schemas do not crash ParacelsusAnalyticsStore", () => {
+  const store = new engine.analytics.constructor();
+  store.data = {};
+  assert.doesNotThrow(() => {
+    store.recordQuery("test query", "match", "bremen", "Orthopädie", false, "de");
+  });
+  assert(store.data.totalQueries >= 1);
+});
+
+runTest("Storage_Safety", "Special keys ('toString', '__proto__', 'constructor') do not corrupt analytics counters", () => {
+  const store = new engine.analytics.constructor();
+  assert.doesNotThrow(() => {
+    store.recordQuery("test", "match", "toString", "constructor", false, "de");
+  });
+  assert.notStrictEqual(typeof store.data.clinicRoutingCounts["toString"], "string");
+});
+
+runTest("Storage_Safety", "Content gaps in analytics do not retain unmasked PII snippets", () => {
+  engine.processQuery("Ich heiße Dr. Heinrich Faust und suche eine Alchemie-Abteilung");
+  const gaps = engine.analytics.data.contentGaps;
+  for (const gap of gaps) {
+    assert(!gap.includes("Heinrich Faust"), `Unmasked PII detected in contentGaps: ${gap}`);
+  }
+});
+
+// =============================================================================
+// 20. ADDITIONAL E2E NAVIGATION & CONTRACT VERIFICATION
+// =============================================================================
+runTest("E2E_Contracts", "Visiting hours query returns comprehensive standorteList for all clinics", () => {
+  const res = engine.processQuery("Wann sind die Besuchszeiten?");
+  assert.strictEqual(res.type, "visiting");
+  assert(Array.isArray(res.standorteList));
+  assert(res.standorteList.length >= 7);
+  assert(res.standorteList.every(s => s.name && s.city && s.hours));
+});
+
+runTest("E2E_Contracts", "Career portal query returns marketing tracked link to karriere portal", () => {
+  const res = engine.processQuery("Ich suche Stellenangebote als Pflegefachkraft");
+  assert.strictEqual(res.type, "link");
+  assert(res.links[0].url.includes("utm_source=paracelsus_wegweiser"));
+  assert(res.links[0].url.includes("utm_campaign=routing_karriere"));
+});
+
+runTest("E2E_Contracts", "Zuweiser query provides dedicated direct doctor telephone and fax lines", () => {
+  const res = engine.processQuery("Ich bin niedergelassener Arzt und möchte einen Patienten einweisen");
+  assert.strictEqual(res.type, "zuweiser");
+  assert(Array.isArray(res.zuweiserContacts));
+  assert(res.zuweiserContacts.every(c => c.phone && c.fax && c.clinic));
 });
 
 // =============================================================================

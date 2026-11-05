@@ -237,6 +237,12 @@
         return;
       }
 
+      const ttsBtn = e.target.closest(".pc-tts-btn");
+      if (ttsBtn && ttsBtn.dataset.tts) {
+        speakText(ttsBtn.dataset.tts);
+        return;
+      }
+
       const calBtn = e.target.closest(".pc-cal-btn");
       if (calBtn && calBtn.dataset.clinicId) {
         downloadCalendar(calBtn.dataset.clinicId);
@@ -327,10 +333,23 @@
       voiceBtn.style.display = "none";
     }
 
-    function appendMsg(html, type = "bot", extraClass = "") {
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    function appendMsg(content, type = "bot", extraClass = "") {
       const div = document.createElement("div");
       div.className = `pc-msg ${type} ${extraClass}`.trim();
-      div.innerHTML = html;
+      if (type === "user") {
+        div.textContent = content;
+      } else {
+        div.innerHTML = content;
+      }
       messages.appendChild(div);
       messages.scrollTop = messages.scrollHeight;
     }
@@ -350,25 +369,26 @@
 
     function renderResponse(res) {
       if (res.type === "emergency") {
+        const ttsText = `${res.message}. ${res.guidance}`;
         const html = `
-          <div class="pc-emergency-head">🚨 ${res.alertTitle}</div>
-          <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">${res.message}</p>
-          <p style="font-size: 13px; line-height: 1.4; margin-bottom: 10px;">${res.guidance}</p>
-          <a href="tel:${res.emergencyCall}" class="pc-emergency-call-btn">☎️ ${res.actionText}</a>
-          <button type="button" class="pc-tts-btn" onclick="(${speakText.toString()})('${res.message}. ${res.guidance}')">🔊 Vorlesen</button>
-          <p style="font-size: 11px; margin-top: 10px; opacity: 0.85;">${res.secondaryNotice}</p>
+          <div class="pc-emergency-head">🚨 ${escapeHtml(res.alertTitle)}</div>
+          <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">${escapeHtml(res.message)}</p>
+          <p style="font-size: 13px; line-height: 1.4; margin-bottom: 10px;">${escapeHtml(res.guidance)}</p>
+          <a href="tel:${escapeHtml(res.emergencyCall)}" class="pc-emergency-call-btn">☎️ ${escapeHtml(res.actionText)}</a>
+          <button type="button" class="pc-tts-btn" data-tts="${escapeHtml(ttsText)}">🔊 Vorlesen</button>
+          <p style="font-size: 11px; margin-top: 10px; opacity: 0.85;">${escapeHtml(res.secondaryNotice)}</p>
         `;
         appendMsg(html, "bot", "emergency-box");
         return;
       }
 
       if (res.type === "unsupported") {
-        let html = `<strong>${res.title}</strong><br>${res.message}<br><br>${res.recommendation}`;
+        let html = `<strong>${escapeHtml(res.title)}</strong><br>${escapeHtml(res.message)}<br><br>${escapeHtml(res.recommendation)}`;
         html += `<br><a href="tel:116117" class="pc-hotline-btn">📞 Ärztlicher Bereitschaftsdienst: 116 117</a>`;
         if (res.chips && res.chips.length > 0) {
           html += `<div class="pc-chips">`;
           res.chips.forEach(c => {
-            html += `<button class="pc-chip" data-query="${c}">${c}</button>`;
+            html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
           });
           html += `</div>`;
         }
@@ -378,16 +398,16 @@
       }
 
       if (res.type === "zuweiser") {
-        let html = `<strong>🩺 ${res.title}</strong><br>${res.message}`;
+        let html = `<strong>🩺 ${escapeHtml(res.title)}</strong><br>${escapeHtml(res.message)}`;
         html += `<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">`;
-        res.zuweiserContacts.forEach(z => {
+        (res.zuweiserContacts || []).forEach(z => {
           html += `
             <div class="pc-zuweiser-card">
-              <div class="pc-zuweiser-clinic">${z.clinic}</div>
-              <div style="font-size: 11px; color: #555;">${z.note}</div>
+              <div class="pc-zuweiser-clinic">${escapeHtml(z.clinic)}</div>
+              <div style="font-size: 11px; color: #555;">${escapeHtml(z.note)}</div>
               <div class="pc-zuweiser-details">
-                <span>📞 Tel: <a href="tel:${z.phone}" style="color: var(--gruen); font-weight: 700;">${z.phone}</a></span>
-                <span>📠 Fax: ${z.fax}</span>
+                <span>📞 Tel: <a href="tel:${escapeHtml(z.phone)}" style="color: var(--gruen); font-weight: 700;">${escapeHtml(z.phone)}</a></span>
+                <span>📠 Fax: ${escapeHtml(z.fax)}</span>
               </div>
             </div>
           `;
@@ -396,7 +416,7 @@
         if (res.chips && res.chips.length > 0) {
           html += `<div class="pc-chips">`;
           res.chips.forEach(c => {
-            html += `<button class="pc-chip" data-query="${c}">${c}</button>`;
+            html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
           });
           html += `</div>`;
         }
@@ -406,15 +426,15 @@
       }
 
       if (res.type === "checklist") {
-        let html = `<strong>📋 ${res.title}</strong><br>${res.message}<ul class="pc-clinic-highlights" style="margin-top: 10px;">`;
-        res.checklistItems.forEach(item => {
-          html += `<li>${item}</li>`;
+        let html = `<strong>📋 ${escapeHtml(res.title)}</strong><br>${escapeHtml(res.message)}<ul class="pc-clinic-highlights" style="margin-top: 10px;">`;
+        (res.checklistItems || []).forEach(item => {
+          html += `<li>${escapeHtml(item)}</li>`;
         });
         html += `</ul>`;
         if (res.chips && res.chips.length > 0) {
           html += `<div class="pc-chips">`;
           res.chips.forEach(c => {
-            html += `<button class="pc-chip" data-query="${c}">${c}</button>`;
+            html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
           });
           html += `</div>`;
         }
@@ -423,24 +443,56 @@
         return;
       }
 
-      let html = `<strong>${res.title || "Paracelsus Wegweiser"}</strong><br>${res.message}`;
+      if (res.type === "visiting") {
+        let html = `<strong>🕐 ${escapeHtml(res.title || "Besuchszeiten & Anfahrt")}</strong><br>${escapeHtml(res.message)}`;
+        if (res.standorteList && res.standorteList.length > 0) {
+          html += `<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">`;
+          res.standorteList.forEach(s => {
+            html += `
+              <div class="pc-zuweiser-card">
+                <div class="pc-zuweiser-clinic">${escapeHtml(s.name)} (📍 ${escapeHtml(s.city)})</div>
+                <div style="font-size: 11.5px; color: #3b5758; margin-top: 2px;">🕒 <strong>Besuchszeiten:</strong> ${escapeHtml(s.hours || "Keine Einschränkung")}</div>
+                <div class="pc-zuweiser-details">
+                  ${s.phone ? `<span>📞 <a href="tel:${escapeHtml(s.phone)}" style="color: var(--gruen); font-weight: 700;">${escapeHtml(s.phone)}</a></span>` : ""}
+                  ${s.mapsUrl ? `<span>🗺️ <a href="${escapeHtml(s.mapsUrl)}" target="_blank" rel="noopener noreferrer" style="color: var(--gruen); font-weight: 700;">Anfahrt (Maps)</a></span>` : ""}
+                </div>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+        const ttsVisiting = `${res.title || ""}. ${res.message || ""}`;
+        html += `<button type="button" class="pc-tts-btn" data-tts="${escapeHtml(ttsVisiting)}">🔊 Vorlesen</button>`;
+        if (res.chips && res.chips.length > 0) {
+          html += `<div class="pc-chips">`;
+          res.chips.forEach(c => {
+            html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
+          });
+          html += `</div>`;
+        }
+        html += getFeedbackBarHtml();
+        appendMsg(html, "bot");
+        return;
+      }
+
+      let html = `<strong>${escapeHtml(res.title || "Paracelsus Wegweiser")}</strong><br>${res.message || ""}`;
 
       if (res.clinic) {
         html += `
           <div class="pc-clinic-card">
             <div class="pc-clinic-header">
               <span class="pc-clinic-badge">Empfohlenes Fachzentrum</span>
-              <span class="pc-clinic-name">${res.clinic.name}</span>
-              <span class="pc-clinic-location">📍 ${res.clinic.city} &bull; ${res.clinic.type}</span>
+              <span class="pc-clinic-name">${escapeHtml(res.clinic.name)}</span>
+              <span class="pc-clinic-location">📍 ${escapeHtml(res.clinic.city)} &bull; ${escapeHtml(res.clinic.type)}</span>
             </div>
             <ul class="pc-clinic-highlights">
-              ${res.clinic.specialties ? res.clinic.specialties.slice(0, 3).map(s => `<li>${s}</li>`).join("") : ""}
+              ${res.clinic.specialties ? res.clinic.specialties.slice(0, 3).map(s => `<li>${escapeHtml(s)}</li>`).join("") : ""}
             </ul>
             <div class="pc-clinic-actions">
-              <a href="${res.clinic.url}" target="_blank" class="pc-btn-primary">Klinikseite & Termin &rarr;</a>
-              <button type="button" class="pc-cal-btn" data-clinic-id="${res.clinic.id}">📅 Im Kalender merken</button>
-              <a href="tel:${res.clinic.phone}" class="pc-phone-label">📞 ${res.clinic.phone}</a>
-              ${res.clinic.mapsUrl ? `<a href="${res.clinic.mapsUrl}" target="_blank" class="pc-maps-link" title="Route in Google Maps">🗺️ Route</a>` : ""}
+              <a href="${escapeHtml(res.clinic.url)}" target="_blank" rel="noopener noreferrer" class="pc-btn-primary">Klinikseite & Termin &rarr;</a>
+              <button type="button" class="pc-cal-btn" data-clinic-id="${escapeHtml(res.clinic.id)}">📅 Im Kalender merken</button>
+              <a href="tel:${escapeHtml(res.clinic.phone)}" class="pc-phone-label">📞 ${escapeHtml(res.clinic.phone)}</a>
+              ${res.clinic.mapsUrl ? `<a href="${escapeHtml(res.clinic.mapsUrl)}" target="_blank" rel="noopener noreferrer" class="pc-maps-link" title="Route in Google Maps">🗺️ Route</a>` : ""}
             </div>
           </div>
         `;
@@ -449,15 +501,18 @@
       if (res.links && res.links.length > 0) {
         html += `<ul style="margin-top: 10px; padding-left: 18px; font-size: 13px;">`;
         res.links.forEach(l => {
-          html += `<li><a href="${l.url}" target="_blank" style="color: var(--gruen); font-weight: 700;">${l.label}</a></li>`;
+          html += `<li><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer" style="color: var(--gruen); font-weight: 700;">${escapeHtml(l.label)}</a></li>`;
         });
         html += `</ul>`;
       }
 
+      const ttsStd = `${res.title || ""} ${(res.message || "").replace(/[*_]/g, "")}`;
+      html += `<button type="button" class="pc-tts-btn" data-tts="${escapeHtml(ttsStd)}">🔊 Vorlesen</button>`;
+
       if (res.chips && res.chips.length > 0) {
         html += `<div class="pc-chips">`;
         res.chips.forEach(c => {
-          html += `<button class="pc-chip" data-query="${c}">${c}</button>`;
+          html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
         });
         html += `</div>`;
       }

@@ -107,7 +107,7 @@ const EMERGENCY_CATEGORIES = {
 // 2. Nicht angebotene Fachdisziplinen
 const UNSUPPORTED_DISCIPLINES = [
   {
-    pattern: /geburt|entbindung|kreißsaal|schwanger|wehen|baby\s*bekommen|wöchnerin|birth|maternity/i,
+    pattern: /\bgeburt(?:en|shilfe|sklinik)?\b|\bentbindung(?:en|sklinik)?\b|\bkrei(?:ß|s)saal\b|\bschwanger(?:schaft)?\b|\bwehen\b|baby\s*bekommen|\bwöchnerin(?:nen)?\b|\bbirth\b|\bmaternity\b/i,
     name: "Geburtshilfe & Kreißsaal",
     alternative: "spezialisierte Geburtskliniken",
     hint: "An den Paracelsus-Standorten wird keine Entbindung vorgehalten."
@@ -156,15 +156,118 @@ const STOPWORDS = new Set([
 
 // 4. PII-Scrubber (Strikte Anonymisierung nach DSGVO Art. 9)
 function scrubPII(text) {
-  if (!text) return "";
-  let clean = text;
-  // Geburtsdatum (vor Telefonnummern matchen, um falsche Zerlegung zu verhindern)
+  if (text === null || text === undefined) return "";
+  let clean = typeof text === "string" ? text : (typeof text === "number" || typeof text === "boolean" ? String(text) : "");
+  if (!clean) return "";
+  clean = clean.normalize("NFC");
+
+  // 1. Geburts- & Kalenderdaten (vor Telefonnummern matchen)
+  // Deutsches Textdatum: 14. Juli 1985 / 14.Juli 1985
+  clean = clean.replace(/\b\d{1,2}\.\s*(?:Januar|Februar|März|Maerz|April|Mai|Juni|Juli|August|September|Oktober|November|Dezember)\s*\d{2,4}\b/gi, "[DATUM ANONYMISIERT]");
+  // ISO-Datum: 1985-07-14
+  clean = clean.replace(/\b\d{4}-\d{2}-\d{2}\b/g, "[DATUM ANONYMISIERT]");
+  // Slash-Datum: 14/07/1985
+  clean = clean.replace(/\b\d{1,2}\/\d{1,2}\/\d{2,4}\b/g, "[DATUM ANONYMISIERT]");
+  // Punkt-Datum: 14.07.1985 (zwei Punkte erforderlich, um Dezimalwerte wie 4.5 ng/ml zu schützen)
   clean = clean.replace(/\b\d{1,2}\.\d{1,2}\.\d{2,4}\b/g, "[DATUM ANONYMISIERT]");
-  clean = clean.replace(/\b[A-Za-z]\d{9}\b/g, "[VERSICHERTEN-NR ANONYMISIERT]");
-  clean = clean.replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,9}/g, "[TELEFON ANONYMISIERT]");
+
+  // 2. Gesetzliche Krankenversichertennummer (1 Buchstabe + 9 Ziffern, auch mit Leerzeichen)
+  clean = clean.replace(/\b[A-Za-z]\s*\d(?:\s*\d){8}\b/g, "[VERSICHERTEN-NR ANONYMISIERT]");
+
+  // 3. E-Mail-Adressen
   clean = clean.replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, "[E-MAIL ANONYMISIERT]");
-  clean = clean.replace(/(?:ich heiße|mein name ist|patient:?)\s+(?:dr\.?\s+)?[a-zäöüß]+(?:\s+[a-zäöüß]+)?/gi, "[NAME ANONYMISIERT]");
-  clean = clean.replace(/(?:herr|frau)\s+(?:dr\.?\s+)?[a-zäöüß]+(?:\s+[a-zäöüß]+)?/gi, "[NAME ANONYMISIERT]");
+
+  // 4. Straßenadressen (deutsche Straßennamen mit Hausnummer)
+  clean = clean.replace(/\b(?:am\s+[A-Za-zÄÖÜäöüßà-öø-ÿ]+|[A-Za-zÄÖÜäöüßà-öø-ÿ]+(?:-[A-Za-zÄÖÜäöüßà-öø-ÿ]+)*(?:-)?(?:straße|str\.|weg|gasse|platz|allee|ring|chaussee|damm|ufer|berg|hang|markt|steig|kamp|zeil|wall))\s+\d+[a-zA-Z]?(?:\s*-\s*\d+[a-zA-Z]?)?\b/gi, "[ADRESSE ANONYMISIERT]");
+
+  // 5. Telefonnummern (5-stellige deutsche PLZ wie 40213 oder 01067 werden geschützt)
+  const phonePattern = /(?:\+(?:[0-9][-.\s/()]*){6,15}[0-9]|\(?\b0[1-9][0-9]{1,4}\)?[-.\s/]+[0-9]{2,10}\b|\(?\b0[1-9][0-9]{1,4}\)?[-.\s/]*[0-9]{3,10}\b|\b[0-9]{6,12}\b)/g;
+  clean = clean.replace(phonePattern, "[TELEFON ANONYMISIERT]");
+
+  // 6. Personennamen (Titel, Anrede, Einführungsmuster, Doppelnamen)
+  const piiStopWords = new Set([
+    "und", "oder", "aber", "hat", "hatte", "habe", "haben", "ist", "sind", "war", "waren",
+    "aus", "an", "am", "in", "im", "von", "vom", "mit", "bei", "nach", "seit", "zu", "zum", "zur", "für",
+    "über", "unter", "vor", "zwischen", "durch",
+    "der", "die", "das", "dem", "den", "des", "ein", "eine", "einer", "eines", "einem", "einen",
+    "ich", "du", "er", "sie", "es", "wir", "ihr", "mich", "mir", "dich", "dir", "ihn", "ihm", "uns", "euch", "ihnen",
+    "mein", "meine", "meinen", "meiner", "sein", "seine", "seinen", "seiner", "ihr", "ihre",
+    "suche", "suchen", "sucht", "brauche", "brauchen", "braucht", "möchte", "will", "kann", "muss",
+    "schmerzen", "beschwerden", "probleme", "hilfe", "behandlung", "klinik", "krankenhaus", "arzt", "überwiesen", "empfahl",
+    "auf", "dem", "krank", "schwanger", "versichert", "gesetzlich", "privat", "nicht", "nur", "schon"
+  ]);
+
+  const nobleParticles = new Set(["von", "zu", "van", "de", "der", "den", "vom"]);
+  const roleStopWords = new Set(["doktor", "arzt", "ärzte", "ärztin", "klinik", "krankenhaus"]);
+
+  function cleanNameMatch(match, prefix, namePart) {
+    const words = namePart.trim().split(/\s+/);
+    const validNames = [];
+    const restWords = [];
+    let collecting = true;
+    const hasExplicitPrefix = /\b(?:herr|frau|patient(?:in)?|dr|prof|priv\.-doz)\b/i.test(prefix);
+
+    for (let i = 0; i < words.length; i++) {
+      const w = words[i];
+      const lower = w.toLowerCase();
+      const isCapitalized = /^[A-ZÄÖÜÀ-ÖØ-ß]/.test(w);
+
+      if (collecting) {
+        // Adelspartikel ("von", "zu", "van", "de") in Nachnamen schützen, falls weiterer Name folgt
+        if (validNames.length > 0 && nobleParticles.has(lower)) {
+          let hasFollowingName = false;
+          for (let j = i + 1; j < words.length; j++) {
+            const nextLower = words[j].toLowerCase();
+            if (/^[A-ZÄÖÜÀ-ÖØ-ß]/.test(words[j]) && !piiStopWords.has(nextLower)) {
+              hasFollowingName = true;
+              break;
+            }
+            if (!nobleParticles.has(nextLower) && nextLower !== "und") {
+              break;
+            }
+          }
+          if (hasFollowingName) {
+            validNames.push(w);
+            continue;
+          }
+        }
+
+        if (!piiStopWords.has(lower)) {
+          validNames.push(w);
+        } else if (validNames.length === 0 && hasExplicitPrefix && isCapitalized && !roleStopWords.has(lower)) {
+          // Kurze Namen, die mit Stoppwörtern kollidieren (z. B. "Frau An") nach explizitem Präfix akzeptieren
+          validNames.push(w);
+        } else {
+          collecting = false;
+          restWords.push(w);
+        }
+      } else {
+        restWords.push(w);
+      }
+    }
+
+    if (validNames.length > 0) {
+      return "[NAME ANONYMISIERT]" + (restWords.length > 0 ? " " + restWords.join(" ") : "");
+    }
+    return match;
+  }
+
+  const titlePattern = "(?:(?:(?:prof(?:essor)?\\.?(?:\\s*dr\\.?)?|dr\\.?|doktor|priv\\.-doz\\.?|pd\\.?)(?:\\s*(?:med|dent|habil|h\\.\\s*c|rer\\.\\s*nat)\\.?)*\\s*)+)";
+  const nameWord = "[a-zäöüßà-öø-ÿ]+(?:-[a-zäöüßà-öø-ÿ]+)*";
+  const candidateNames = "\\b" + nameWord + "(?:\\s+" + nameWord + "){0,4}\\b";
+
+  // A. Intro-Phrasen: "ich heiße", "mein name ist/lautet", "hier ist", "hier spricht", "patient(in):"
+  clean = clean.replace(new RegExp("((?:ich\\s+heiße|ich\\s+bin|mein\\s+name\\s+(?:ist|lautet)|hier\\s+(?:ist|spricht)|patient(?:in)?(?::|\\s+ist:?)?)\\s+(?:" + titlePattern + ")?(?:(?:herr|frau)\\s+)?(?:" + titlePattern + ")?)(" + candidateNames + ")", "gi"), cleanNameMatch);
+
+  // B. Anrede "Herr" / "Frau" mit Namen
+  clean = clean.replace(new RegExp("((?:herr|frau)\\s+(?:" + titlePattern + ")?)(" + candidateNames + ")", "gi"), cleanNameMatch);
+
+  // C. Freistehende akademische Titel: "Dr. Thomas Müller", "Prof. Dr. Schmidt", "Priv.-Doz. Dr. Schmidt"
+  clean = clean.replace(new RegExp("(\\b" + titlePattern + ")(" + candidateNames + ")", "gi"), cleanNameMatch);
+
+  // D. "Ich bin [Name]"
+  clean = clean.replace(new RegExp("(\\bich\\s+bin\\s+)(" + candidateNames + ")", "gi"), cleanNameMatch);
+
   return clean;
 }
 
@@ -172,16 +275,24 @@ function scrubPII(text) {
 function buildMarketingUrl(baseUrl, clinicId, intent) {
   if (!baseUrl) return "#";
   try {
-    const url = new URL(baseUrl);
+    let url;
+    try {
+      url = new URL(baseUrl);
+    } catch (e) {
+      url = new URL(baseUrl, "https://www.paracelsus-kliniken.de/");
+    }
+    if (url.protocol !== "http:" && url.protocol !== "https:") {
+      return "#";
+    }
     url.searchParams.set("utm_source", "paracelsus_wegweiser");
     url.searchParams.set("utm_medium", "chatbot");
     url.searchParams.set("utm_campaign", `routing_${clinicId || "general"}`);
     if (intent) {
-      url.searchParams.set("utm_content", encodeURIComponent(intent));
+      url.searchParams.set("utm_content", String(intent));
     }
     return url.toString();
   } catch (e) {
-    return baseUrl;
+    return "#";
   }
 }
 
@@ -303,6 +414,17 @@ function hasWordBoundary(text, word) {
   return reg.test(text);
 }
 
+function safeIncrement(obj, key) {
+  if (!obj || typeof key !== "string" || key === "__proto__") return;
+  const current = Object.prototype.hasOwnProperty.call(obj, key) ? Number(obj[key]) || 0 : 0;
+  Object.defineProperty(obj, key, {
+    value: current + 1,
+    writable: true,
+    enumerable: true,
+    configurable: true
+  });
+}
+
 // 9. DSGVO-konformer Analytics-Store mit dezentem Feedback
 class ParacelsusAnalyticsStore {
   constructor() {
@@ -311,15 +433,11 @@ class ParacelsusAnalyticsStore {
   }
 
   load() {
-    try {
-      const raw = localStorage.getItem(this.storageKey);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-    return {
+    const defaults = {
       totalQueries: 0,
       emergencyAlerts: 0,
-      intentCounts: {},
-      clinicRoutingCounts: {},
+      intentCounts: Object.create(null),
+      clinicRoutingCounts: Object.create(null),
       contentGaps: [],
       linkClicks: 0,
       calendarDownloads: 0,
@@ -328,6 +446,22 @@ class ParacelsusAnalyticsStore {
       zuweiserQueries: 0,
       languageCounts: { de: 0, en: 0, tr: 0, uk: 0 }
     };
+    try {
+      const raw = localStorage.getItem(this.storageKey);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && typeof parsed === "object") {
+          return Object.assign({}, defaults, parsed, {
+            clinicRoutingCounts: Object.assign(Object.create(null), defaults.clinicRoutingCounts, parsed.clinicRoutingCounts),
+            intentCounts: Object.assign(Object.create(null), defaults.intentCounts, parsed.intentCounts),
+            contentGaps: Array.isArray(parsed.contentGaps) ? parsed.contentGaps : [],
+            feedback: Object.assign({}, defaults.feedback, parsed.feedback),
+            languageCounts: Object.assign(Object.create(null), defaults.languageCounts, parsed.languageCounts)
+          });
+        }
+      }
+    } catch (e) {}
+    return defaults;
   }
 
   save() {
@@ -337,27 +471,36 @@ class ParacelsusAnalyticsStore {
   }
 
   recordQuery(anonymizedQuery, resultType, clinicId, category, isVoice = false, lang = "de") {
-    this.data.totalQueries++;
-    if (isVoice) this.data.voiceQueries++;
-    if (this.data.languageCounts) {
-      this.data.languageCounts[lang] = (this.data.languageCounts[lang] || 0) + 1;
+    if (!this.data || typeof this.data !== "object") {
+      this.data = this.load();
     }
+    this.data.totalQueries = (Number(this.data.totalQueries) || 0) + 1;
+    if (isVoice) this.data.voiceQueries = (Number(this.data.voiceQueries) || 0) + 1;
+
+    this.data.languageCounts = this.data.languageCounts || {};
+    safeIncrement(this.data.languageCounts, lang);
+
     if (resultType === "emergency") {
-      this.data.emergencyAlerts++;
+      this.data.emergencyAlerts = (Number(this.data.emergencyAlerts) || 0) + 1;
     }
     if (clinicId) {
-      this.data.clinicRoutingCounts[clinicId] = (this.data.clinicRoutingCounts[clinicId] || 0) + 1;
+      this.data.clinicRoutingCounts = this.data.clinicRoutingCounts || {};
+      safeIncrement(this.data.clinicRoutingCounts, clinicId);
     }
     if (category) {
-      this.data.intentCounts[category] = (this.data.intentCounts[category] || 0) + 1;
+      this.data.intentCounts = this.data.intentCounts || {};
+      safeIncrement(this.data.intentCounts, category);
     }
     if (category === "Zuweiser & Ärzte") {
-      this.data.zuweiserQueries = (this.data.zuweiserQueries || 0) + 1;
+      this.data.zuweiserQueries = (Number(this.data.zuweiserQueries) || 0) + 1;
     }
     if (resultType === "fallback") {
-      const snippet = anonymizedQuery.substring(0, 50).trim();
-      if (snippet && !this.data.contentGaps.includes(snippet)) {
-        this.data.contentGaps.push(snippet);
+      this.data.contentGaps = Array.isArray(this.data.contentGaps) ? this.data.contentGaps : [];
+      let scrubbedSnippet = scrubPII(anonymizedQuery || "").substring(0, 50).trim();
+      // Mask any residual standalone 2-3 word capitalized person names in fallback queries
+      scrubbedSnippet = scrubbedSnippet.replace(/\b[A-ZÄÖÜÀ-ÖØ-ß][a-zäöüßà-öø-ÿ]+(?:\s+[A-ZÄÖÜÀ-ÖØ-ß][a-zäöüßà-öø-ÿ]+){1,2}\b/g, () => "[NAME ANONYMISIERT]");
+      if (scrubbedSnippet && !this.data.contentGaps.includes(scrubbedSnippet)) {
+        this.data.contentGaps.push(scrubbedSnippet);
         if (this.data.contentGaps.length > 30) this.data.contentGaps.shift();
       }
     }
@@ -365,19 +508,23 @@ class ParacelsusAnalyticsStore {
   }
 
   recordFeedback(rating) {
+    if (!this.data || typeof this.data !== "object") this.data = this.load();
+    this.data.feedback = this.data.feedback || { ja: 0, maessig: 0, nein: 0 };
     if (["ja", "maessig", "nein"].includes(rating)) {
-      this.data.feedback[rating] = (this.data.feedback[rating] || 0) + 1;
+      this.data.feedback[rating] = (Number(this.data.feedback[rating]) || 0) + 1;
       this.save();
     }
   }
 
   recordCalendarDownload() {
-    this.data.calendarDownloads = (this.data.calendarDownloads || 0) + 1;
+    if (!this.data || typeof this.data !== "object") this.data = this.load();
+    this.data.calendarDownloads = (Number(this.data.calendarDownloads) || 0) + 1;
     this.save();
   }
 
   recordClick(type, label) {
-    this.data.linkClicks++;
+    if (!this.data || typeof this.data !== "object") this.data = this.load();
+    this.data.linkClicks = (Number(this.data.linkClicks) || 0) + 1;
     this.save();
   }
 
@@ -386,7 +533,9 @@ class ParacelsusAnalyticsStore {
   }
 
   reset() {
-    localStorage.removeItem(this.storageKey);
+    try {
+      localStorage.removeItem(this.storageKey);
+    } catch (e) {}
     this.data = this.load();
   }
 }
@@ -404,7 +553,13 @@ class ParacelsusBotEngine {
   }
 
   processQuery(rawUserInput, isVoice = false) {
-    const scrubbedInput = scrubPII(rawUserInput || "");
+    if (rawUserInput === null || rawUserInput === undefined) {
+      rawUserInput = "";
+    } else if (typeof rawUserInput !== "string") {
+      rawUserInput = (typeof rawUserInput === "number" || typeof rawUserInput === "boolean") ? String(rawUserInput) : "";
+    }
+    rawUserInput = rawUserInput.normalize("NFC");
+    const scrubbedInput = scrubPII(rawUserInput);
     let query = scrubbedInput.trim().toLowerCase();
     const lang = this.currentLanguage;
 
@@ -417,6 +572,19 @@ class ParacelsusBotEngine {
       .replace(/лікарн[а-я]*|клінік[а-я]*/gi, "klinik")
       .replace(/лікуван[а-я]*/gi, "behandlung");
 
+    // German medical adjective lemmatization (inflected adjective -> root noun)
+    query = query
+      .replace(/\bneurologisch(?:e[rsmn]?|em)?\b/gi, "neurologie")
+      .replace(/\borthopädisch(?:e[rsmn]?|em)?\b/gi, "orthopädie")
+      .replace(/\burologisch(?:e[rsmn]?|em)?\b/gi, "urologie")
+      .replace(/\bchirurgisch(?:e[rsmn]?|em)?\b/gi, "chirurgie")
+      .replace(/\bonkologisch(?:e[rsmn]?|em)?\b/gi, "onkologie")
+      .replace(/\bkardiologisch(?:e[rsmn]?|em)?\b/gi, "kardiologie")
+      .replace(/\bpsychiatrisch(?:e[rsmn]?|em)?\b/gi, "psychiatrie")
+      .replace(/\bpsychosomatisch(?:e[rsmn]?|em)?\b/gi, "psychosomatik")
+      .replace(/\brheumatologisch(?:e[rsmn]?|em)?\b/gi, "rheumatologie")
+      .replace(/\binternistisch(?:e[rsmn]?|em)?\b/gi, "innere medizin");
+
     if (!query) {
       const emptyMsg = {
         de: "Wie dürfen wir Ihnen helfen? Nennen Sie uns gerne Ihre Beschwerde, einen Fachbereich oder eine Stadt.",
@@ -426,8 +594,19 @@ class ParacelsusBotEngine {
       };
       return {
         type: "empty",
-        message: emptyMsg[lang] || emptyMsg.de
+        message: emptyMsg[lang] || emptyMsg.de,
+        secondaryNotice: "MDR-Hinweis: Dieser digitale Wegweiser führt keine medizinische Notfallbehandlung oder Diagnostik durch."
       };
+    }
+
+    // Wenn ein Höflichkeitspräfix am Anfang steht (z.B. "Hallo ich suche..."), abstreifen für nachfolgende Triage
+    // Aber reine Begrüßungen (z.B. "Hallo", "Hallo guten Tag", "Moin") als Begrüßungs-Intent erhalten
+    const pureGreetingPattern = /^(?:hallo|hi|hey|guten\s*(?:tag|morgen|abend)|moin(?:\s+moin)?|servus|grüß\s*gott|wer\s*bist\s*du|was\s*kannst\s*du|\s+)+[.!?]*$/i;
+    const isPureGreeting = pureGreetingPattern.test(query.replace(/[^a-zäöüß\s]/gi, "").trim()) || /^(?:wer\s*bist\s*du|was\s*kannst\s*du)\b/i.test(query);
+
+    const greetingPrefixPattern = /^(?:hallo|hi|hey|guten\s*(?:tag|morgen|abend)|moin(?:\s+moin)?|servus|grüß\s*gott)[,!\s]+/i;
+    if (!isPureGreeting && greetingPrefixPattern.test(query)) {
+      query = query.replace(greetingPrefixPattern, "").trim();
     }
 
     const queryWords = query.split(/[\s,.\-?!;:]+/).filter(w => w.length > 0);
@@ -471,7 +650,8 @@ class ParacelsusBotEngine {
           message: un.hint,
           recommendation: `Für ${un.alternative} sowie bei akuten Fragen außerhalb der Praxiszeiten wenden Sie sich bitte an den bundesweiten Bereitschaftsdienst:`,
           hotline: "116 117",
-          chips: ["Urologie & Prostata", "Parkinson & Neurologie", "Orthopädie & Gelenke", "Alle Standorte"]
+          chips: ["Urologie & Prostata", "Parkinson & Neurologie", "Orthopädie & Gelenke", "Alle Standorte"],
+          secondaryNotice: "MDR-Hinweis: Dieser digitale Wegweiser führt keine medizinische Notfallbehandlung oder Diagnostik durch."
         };
       }
     }
@@ -481,7 +661,7 @@ class ParacelsusBotEngine {
     // =========================================================================
 
     // A. Begrüßung & Smalltalk
-    if (/^(hallo|hi|hey|guten\s*(tag|morgen|abend)|moin|servus|grüß\s*gott|wer\s*bist\s*du|was\s*kannst\s*du)\b/i.test(query)) {
+    if (isPureGreeting) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Begrüßung", isVoice, lang);
       return {
         type: "info",
@@ -495,7 +675,8 @@ class ParacelsusBotEngine {
           "Rheuma & Schmerztherapie (Langenhagen)",
           "Koffer-Packliste",
           "Überweisung & Termine"
-        ]
+        ],
+        secondaryNotice: "MDR-Hinweis: Dieser digitale Wegweiser führt keine medizinische Notfallbehandlung oder Diagnostik durch."
       };
     }
 
@@ -534,7 +715,22 @@ class ParacelsusBotEngine {
           "• **Einzel- & Zweibettzimmer:** Komfortzimmer können je nach Verfügbarkeit gebucht werden (Abrechnung über private Zusatzversicherung oder als Selbstzahlerleistung).<br>" +
           "• **Begleitperson (Rooming-in):** Die Mitaufnahme einer Begleitperson ist nach vorheriger Absprache mit der jeweiligen Klinik möglich. Bei medizinischer Notwendigkeit übernimmt die Kasse die Kosten, andernfalls erfolgt die Abrechnung als Wahlleistung.<br>" +
           "• **Gleichbehandlung:** Die medizinische und pflegerische Spitzenversorgung ist für alle Patientinnen und Patienten auf demselben hohen Qualitätsniveau gesichert.",
-        chips: ["Kosten & Zuzahlung", "Aufnahme-Checkliste", "Besuchszeiten"]
+        chips: ["Kosten & Zuzahlung", "Aufnahme-Checkliste", "Besuchszeiten"],
+        secondaryNotice: "MDR-Hinweis: Dieser digitale Wegweiser führt keine medizinische Notfallbehandlung oder Diagnostik durch."
+      };
+    }
+
+    // D2. Neutrale medizinische Betreuung & Fachärzteteams ("Chefarzt / Chefarztbehandlung")
+    if (/\b(chefarzt[a-z]*|chefärzt[a-z]*|chefin|chefvisite|chefbehandlung|chefarztbehandlung|beim\s*chef)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Medizinische Betreuung", isVoice, lang);
+      return {
+        type: "info",
+        title: "Medizinische Versorgung durch Fachärzteteams",
+        message: "In den Paracelsus Kliniken erfolgt die medizinische Spitzenversorgung partnerschaftlich durch hochqualifizierte, interdisziplinäre Fachärzteteams auf einheitlich hohem Qualitätsniveau. Alle Patientinnen und Patienten erhalten die bestmögliche leitliniengerechte Diagnostik und Therapie durch Spezialisten des jeweiligen Fachbereichs.<br><br>" +
+          "• **Fachärztliche Betreuung:** Alle Behandlungen und Operationen werden von qualifizierten Fachärztinnen und Fachärzten geleitet.<br>" +
+          "• **Wahlleistungen & Komfort:** Zusätzliche Komfortleistungen wie eine Unterbringung im Einzelzimmer können über Wahlleistungsvereinbarungen in Anspruch genommen werden.",
+        chips: ["Wahlleistung & Komfort", "Fachabteilungen anzeigen", "Termin vereinbaren"],
+        secondaryNotice: "MDR-Hinweis: Dieser digitale Wegweiser führt keine medizinische Notfallbehandlung oder Diagnostik durch."
       };
     }
 
@@ -554,7 +750,7 @@ class ParacelsusBotEngine {
     }
 
     // F. Zuweiser & Ärzte-Portal (Exklusiv für einweisende Kolleginnen & Kollegen)
-    if (/zuweiser|arztportal|(fach)?ärztliche\s*einweisung|urologische\s*einweisung|kollegialer\s*kontakt|befundübermittlung|patient[a-z]*\s*einweisen|patient[a-z]*\s*überweisen|niedergelassene[a-z]*|einweisend[a-z]*/i.test(query)) {
+    if (/zuweiser|arztportal|(fach)?ärztliche\s*einweisung|urolog(?:ische|ie)\s*einweisung|kollegialer\s*kontakt|befundübermittlung|patient[a-z]*\s*einweisen|patient[a-z]*\s*überweisen|niedergelassene[a-z]*|einweisend[a-z]*/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Zuweiser & Ärzte", isVoice, lang);
       return {
         type: "zuweiser",
@@ -716,7 +912,8 @@ class ParacelsusBotEngine {
       // D. Keywords & Symptom-Match (mit safeFuzzyMatch für Tippfehler)
       clinic.keywords.forEach(keyword => {
         const kwLower = keyword.toLowerCase();
-        if (query.includes(kwLower)) {
+        const isMatch = (kwLower.length <= 4) ? hasWordBoundary(query, kwLower) : query.includes(kwLower);
+        if (isMatch) {
           // Längere und spezifischere Fachbegriffe höher gewichten
           score += (kwLower.length > 8 || kwLower.includes(" ")) ? 10 : 7;
           matchedTerms.push(keyword);
@@ -793,7 +990,8 @@ class ParacelsusBotEngine {
           url: buildMarketingUrl(m.clinic.url, m.clinic.id, "secondary_match"),
           icsContent: createCalendarEventContent(m.clinic)
         })),
-        chips: ["Checkliste Aufnahme", "Route & Anfahrt", "Klinikseite öffnen", "Anderer Standort"]
+        chips: ["Checkliste Aufnahme", "Route & Anfahrt", "Klinikseite öffnen", "Anderer Standort"],
+        secondaryNotice: "MDR-Hinweis: Dieser digitale Wegweiser führt keine medizinische Notfallbehandlung oder Diagnostik durch."
       };
     }
 
@@ -838,7 +1036,8 @@ class ParacelsusBotEngine {
         "Notaufnahme & Bauch (Henstedt-Ulzburg)",
         "Rheuma & Schmerztherapie (Langenhagen)",
         "Aufnahme-Checkliste"
-      ]
+      ],
+      secondaryNotice: "MDR-Hinweis: Dieser digitale Wegweiser führt keine medizinische Notfallbehandlung oder Diagnostik durch."
     };
   }
 }

@@ -361,12 +361,12 @@
         <br><br>
         <strong>Wobei können wir Ihnen heute helfen?</strong>
         <div class="pc-chips">
-          <button class="pc-chip" onclick="handleChipClick('Parkinson & Bewegungsstörungen')"><span>🧠</span> Parkinson</button>
-          <button class="pc-chip" onclick="handleChipClick('Prostata & Urologie')"><span>🔬</span> Urologie</button>
-          <button class="pc-chip" onclick="handleChipClick('Gelenke, Knie & Hüfte')"><span>🦴</span> Orthopädie</button>
-          <button class="pc-chip" onclick="handleChipClick('Zentrale Notaufnahme')"><span>🚑</span> Notaufnahme</button>
-          <button class="pc-chip" onclick="handleChipClick('Checkliste für den Klinikaufenthalt')"><span>📋</span> Kofferliste</button>
-          <button class="pc-chip" onclick="handleChipClick('Zuweiser und Ärzteportal')"><span>🩺</span> Zuweiser</button>
+          <button class="pc-chip" data-query="Parkinson &amp; Bewegungsstörungen"><span>🧠</span> Parkinson</button>
+          <button class="pc-chip" data-query="Prostata &amp; Urologie"><span>🔬</span> Urologie</button>
+          <button class="pc-chip" data-query="Gelenke, Knie &amp; Hüfte"><span>🦴</span> Orthopädie</button>
+          <button class="pc-chip" data-query="Zentrale Notaufnahme"><span>🚑</span> Notaufnahme</button>
+          <button class="pc-chip" data-query="Checkliste für den Klinikaufenthalt"><span>📋</span> Kofferliste</button>
+          <button class="pc-chip" data-query="Zuweiser und Ärzteportal"><span>🩺</span> Zuweiser</button>
         </div>
       </div>
     </div>
@@ -527,6 +527,44 @@
     const chatInput = document.getElementById("pcInput");
     const voiceBtn = document.getElementById("voiceSearchBtn");
 
+    function escapeHtml(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;");
+    }
+
+    if (messagesArea) {
+      messagesArea.addEventListener("click", (e) => {
+        const chip = e.target.closest(".pc-chip");
+        if (chip && chip.dataset.query) {
+          chatInput.value = chip.dataset.query;
+          handleFormSubmit();
+          return;
+        }
+
+        const ttsBtn = e.target.closest(".pc-tts-btn");
+        if (ttsBtn && ttsBtn.dataset.tts) {
+          speakText(ttsBtn.dataset.tts);
+          return;
+        }
+
+        const calBtn = e.target.closest(".pc-cal-btn");
+        if (calBtn && calBtn.dataset.clinicId) {
+          downloadClinicCalendar(calBtn.dataset.clinicId);
+          return;
+        }
+
+        const fbBtn = e.target.closest(".pc-feedback-btn");
+        if (fbBtn && fbBtn.dataset.rating) {
+          sendFeedback(fbBtn, fbBtn.dataset.rating);
+          return;
+        }
+      });
+    }
+
     let fontCycleIndex = 0; // 0: Normal, 1: Groß, 2: Sehr groß
     function cycleFontSize() {
       fontCycleIndex = (fontCycleIndex + 1) % 3;
@@ -669,11 +707,11 @@
       return `
         <div class="pc-feedback-bar">
           <span>War das hilfreich?</span>
-          <button type="button" class="pc-feedback-btn" onclick="sendFeedback(this, 'ja')">Ja</button>
+          <button type="button" class="pc-feedback-btn" data-rating="ja">Ja</button>
           <span>&bull;</span>
-          <button type="button" class="pc-feedback-btn" onclick="sendFeedback(this, 'maessig')">Mäßig</button>
+          <button type="button" class="pc-feedback-btn" data-rating="maessig">Mäßig</button>
           <span>&bull;</span>
-          <button type="button" class="pc-feedback-btn" onclick="sendFeedback(this, 'nein')">Nein</button>
+          <button type="button" class="pc-feedback-btn" data-rating="nein">Nein</button>
         </div>
       `;
     }
@@ -714,13 +752,14 @@
       // 1. Notfall
       if (res.type === "emergency") {
         msg.className = "pc-msg emergency-box";
+        const ttsText = `${res.message}. ${res.guidance}`;
         msg.innerHTML = `
-          <div class="pc-emergency-head">🚨 ${res.alertTitle}</div>
-          <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">${res.message}</p>
-          <p style="font-size: 13px; line-height: 1.45; margin-bottom: 10px;">${res.guidance}</p>
-          <a href="tel:${res.emergencyCall}" class="pc-emergency-call-btn" onclick="engine.analytics.recordClick('emergency', '${res.emergencyCall}')">☎️ ${res.actionText}</a>
-          <button type="button" class="pc-tts-btn" onclick="speakText('${res.message}. ${res.guidance}')">🔊 Vorlesen</button>
-          <p style="font-size: 11px; margin-top: 10px; opacity: 0.85;">${res.secondaryNotice}</p>
+          <div class="pc-emergency-head">🚨 ${escapeHtml(res.alertTitle)}</div>
+          <p style="font-weight: 700; font-size: 15px; margin-bottom: 6px;">${escapeHtml(res.message)}</p>
+          <p style="font-size: 13px; line-height: 1.45; margin-bottom: 10px;">${escapeHtml(res.guidance)}</p>
+          <a href="tel:${escapeHtml(res.emergencyCall)}" class="pc-emergency-call-btn" onclick="engine.analytics.recordClick('emergency', '${escapeHtml(res.emergencyCall)}')">☎️ ${escapeHtml(res.actionText)}</a>
+          <button type="button" class="pc-tts-btn" data-tts="${escapeHtml(ttsText)}">🔊 Vorlesen</button>
+          <p style="font-size: 11px; margin-top: 10px; opacity: 0.85;">${escapeHtml(res.secondaryNotice)}</p>
         `;
         messagesArea.appendChild(msg);
         scrollToBottom();
@@ -730,12 +769,12 @@
       // 2. Nicht angebotene Fachbereiche
       if (res.type === "unsupported") {
         msg.className = "pc-msg unsupported-box";
-        let html = `<strong>${res.title}</strong><br>${res.message}<br><br>${res.recommendation}`;
+        let html = `<strong>${escapeHtml(res.title)}</strong><br>${escapeHtml(res.message)}<br><br>${escapeHtml(res.recommendation)}`;
         html += `<br><a href="tel:116117" class="pc-hotline-btn" onclick="engine.analytics.recordClick('hotline', '116117')">📞 Ärztlicher Bereitschaftsdienst: 116 117</a>`;
         if (res.chips && res.chips.length > 0) {
           html += `<div class="pc-chips">`;
           res.chips.forEach(c => {
-            html += `<button class="pc-chip" onclick="handleChipClick('${c}')">${c}</button>`;
+            html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
           });
           html += `</div>`;
         }
@@ -749,16 +788,16 @@
       // 3. Zuweiser- & Facharztportal
       if (res.type === "zuweiser") {
         msg.className = "pc-msg bot";
-        let html = `<strong>🩺 ${res.title}</strong><br>${res.message}`;
+        let html = `<strong>🩺 ${escapeHtml(res.title || "Zuweiserportal")}</strong><br>${escapeHtml(res.message)}`;
         html += `<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">`;
-        res.zuweiserContacts.forEach(z => {
+        (res.zuweiserContacts || []).forEach(z => {
           html += `
             <div class="pc-zuweiser-card">
-              <div class="pc-zuweiser-clinic">${z.clinic}</div>
-              <div style="font-size: 11px; color: #555;">${z.note}</div>
+              <div class="pc-zuweiser-clinic">${escapeHtml(z.clinic)}</div>
+              <div style="font-size: 11px; color: #555;">${escapeHtml(z.note)}</div>
               <div class="pc-zuweiser-details">
-                <span>📞 Tel: <a href="tel:${z.phone}" style="color: var(--gruen); font-weight: 700;">${z.phone}</a></span>
-                <span>📠 Fax: ${z.fax}</span>
+                <span>📞 Tel: <a href="tel:${escapeHtml(z.phone)}" style="color: var(--gruen); font-weight: 700;">${escapeHtml(z.phone)}</a></span>
+                <span>📠 Fax: ${escapeHtml(z.fax)}</span>
               </div>
             </div>
           `;
@@ -767,7 +806,7 @@
         if (res.chips && res.chips.length > 0) {
           html += `<div class="pc-chips">`;
           res.chips.forEach(c => {
-            html += `<button class="pc-chip" onclick="handleChipClick('${c}')">${c}</button>`;
+            html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
           });
           html += `</div>`;
         }
@@ -781,8 +820,8 @@
       // 4. Interaktive Koffer-Packliste
       if (res.type === "checklist") {
         msg.className = "pc-msg bot";
-        const total = res.checklistItems.length;
-        let html = `<strong>📋 ${res.title}</strong><br>${res.message}`;
+        const total = (res.checklistItems || []).length;
+        let html = `<strong>📋 ${escapeHtml(res.title)}</strong><br>${escapeHtml(res.message)}`;
         html += `
           <div class="pc-checklist-wrapper" id="checklistWrapper">
             <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 700; color: var(--salbei);">
@@ -794,11 +833,11 @@
             </div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
         `;
-        res.checklistItems.forEach((item, idx) => {
+        (res.checklistItems || []).forEach((item, idx) => {
           html += `
             <label class="pc-check-item" id="checkLabel_${idx}">
               <input type="checkbox" onchange="updateChecklistProgress(${idx}, ${total})">
-              <span>${item}</span>
+              <span>${escapeHtml(item)}</span>
             </label>
           `;
         });
@@ -808,13 +847,13 @@
           </div>
           <div style="margin-top: 10px; display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
             <button type="button" class="pc-print-btn" onclick="printChecklist()">🖨️ Packliste drucken / PDF</button>
-            <button type="button" class="pc-tts-btn" onclick="speakText('${res.message}')">🔊 Vorlesen</button>
+            <button type="button" class="pc-tts-btn" data-tts="${escapeHtml(res.message)}">🔊 Vorlesen</button>
           </div>
         `;
         if (res.chips && res.chips.length > 0) {
           html += `<div class="pc-chips">`;
           res.chips.forEach(c => {
-            html += `<button class="pc-chip" onclick="handleChipClick('${c}')">${c}</button>`;
+            html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
           });
           html += `</div>`;
         }
@@ -825,26 +864,62 @@
         return;
       }
 
-      // 5. Normales Routing & Matching
+      // 5. Besuchszeiten & Anfahrt
+      if (res.type === "visiting") {
+        msg.className = "pc-msg bot";
+        let html = `<strong>🕐 ${escapeHtml(res.title || "Besuchszeiten & Anfahrt")}</strong><br>${escapeHtml(res.message)}`;
+        if (res.standorteList && res.standorteList.length > 0) {
+          html += `<div style="margin-top: 12px; display: flex; flex-direction: column; gap: 8px;">`;
+          res.standorteList.forEach(s => {
+            html += `
+              <div class="pc-zuweiser-card">
+                <div class="pc-zuweiser-clinic">${escapeHtml(s.name)} (📍 ${escapeHtml(s.city)})</div>
+                <div style="font-size: 11.5px; color: #3b5758; margin-top: 2px;">🕒 <strong>Besuchszeiten:</strong> ${escapeHtml(s.hours || "Keine Einschränkung")}</div>
+                <div class="pc-zuweiser-details">
+                  ${s.phone ? `<span>📞 <a href="tel:${escapeHtml(s.phone)}" style="color: var(--gruen); font-weight: 700;">${escapeHtml(s.phone)}</a></span>` : ""}
+                  ${s.mapsUrl ? `<span>🗺️ <a href="${escapeHtml(s.mapsUrl)}" target="_blank" rel="noopener noreferrer" style="color: var(--gruen); font-weight: 700;">Anfahrt (Maps)</a></span>` : ""}
+                </div>
+              </div>
+            `;
+          });
+          html += `</div>`;
+        }
+        const ttsVisiting = `${res.title || ""}. ${res.message || ""}`;
+        html += `<button type="button" class="pc-tts-btn" data-tts="${escapeHtml(ttsVisiting)}">🔊 Vorlesen</button>`;
+        if (res.chips && res.chips.length > 0) {
+          html += `<div class="pc-chips">`;
+          res.chips.forEach(c => {
+            html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
+          });
+          html += `</div>`;
+        }
+        html += getFeedbackBarHtml();
+        msg.innerHTML = html;
+        messagesArea.appendChild(msg);
+        scrollToBottom();
+        return;
+      }
+
+      // 6. Normales Routing & Matching
       msg.className = "pc-msg bot";
-      let html = `<strong>${res.title || "Paracelsus Wegweiser"}</strong><br>${res.message}`;
+      let html = `<strong>${escapeHtml(res.title || "Paracelsus Wegweiser")}</strong><br>${res.message || ""}`;
 
       if (res.clinic) {
         html += `
           <div class="pc-clinic-card">
             <div class="pc-clinic-header">
               <span class="pc-clinic-badge">Empfohlenes Fachzentrum</span>
-              <span class="pc-clinic-name">${res.clinic.name}</span>
-              <span class="pc-clinic-location">📍 ${res.clinic.city} &bull; ${res.clinic.type}</span>
+              <span class="pc-clinic-name">${escapeHtml(res.clinic.name)}</span>
+              <span class="pc-clinic-location">📍 ${escapeHtml(res.clinic.city)} &bull; ${escapeHtml(res.clinic.type)}</span>
             </div>
             <ul class="pc-clinic-highlights">
-              ${res.clinic.specialties ? res.clinic.specialties.slice(0, 3).map(s => `<li>${s}</li>`).join("") : ""}
+              ${res.clinic.specialties ? res.clinic.specialties.slice(0, 3).map(s => `<li>${escapeHtml(s)}</li>`).join("") : ""}
             </ul>
             <div class="pc-clinic-actions">
-              <a href="${res.clinic.url}" target="_blank" class="pc-btn-primary" onclick="engine.analytics.recordClick('clinic_url', '${res.clinic.id}')">Klinikseite & Termin &rarr;</a>
-              <button type="button" class="pc-cal-btn" onclick="downloadClinicCalendar('${res.clinic.id}')" title="Termin im Smartphone-Kalender vormerken">📅 Im Kalender merken</button>
-              <a href="tel:${res.clinic.phone}" class="pc-phone-label" onclick="engine.analytics.recordClick('phone', '${res.clinic.id}')">📞 ${res.clinic.phone}</a>
-              ${res.clinic.mapsUrl ? `<a href="${res.clinic.mapsUrl}" target="_blank" class="pc-maps-link" onclick="engine.analytics.recordClick('maps', '${res.clinic.id}')">🗺️ Anfahrt</a>` : ""}
+              <a href="${escapeHtml(res.clinic.url)}" target="_blank" rel="noopener noreferrer" class="pc-btn-primary" onclick="engine.analytics.recordClick('clinic_url', '${escapeHtml(res.clinic.id)}')">Klinikseite & Termin &rarr;</a>
+              <button type="button" class="pc-cal-btn" data-clinic-id="${escapeHtml(res.clinic.id)}" title="Termin im Smartphone-Kalender vormerken">📅 Im Kalender merken</button>
+              <a href="tel:${escapeHtml(res.clinic.phone)}" class="pc-phone-label" onclick="engine.analytics.recordClick('phone', '${escapeHtml(res.clinic.id)}')">📞 ${escapeHtml(res.clinic.phone)}</a>
+              ${res.clinic.mapsUrl ? `<a href="${escapeHtml(res.clinic.mapsUrl)}" target="_blank" rel="noopener noreferrer" class="pc-maps-link" onclick="engine.analytics.recordClick('maps', '${escapeHtml(res.clinic.id)}')">🗺️ Anfahrt</a>` : ""}
             </div>
           </div>
         `;
@@ -853,17 +928,18 @@
       if (res.links && res.links.length > 0) {
         html += `<ul style="margin-top: 10px; padding-left: 18px; font-size: 13px;">`;
         res.links.forEach(l => {
-          html += `<li><a href="${l.url}" target="_blank" style="color: var(--gruen); font-weight: 700;" onclick="engine.analytics.recordClick('external_link', '${l.label}')">${l.label}</a></li>`;
+          html += `<li><a href="${escapeHtml(l.url)}" target="_blank" rel="noopener noreferrer" style="color: var(--gruen); font-weight: 700;" onclick="engine.analytics.recordClick('external_link', '${escapeHtml(l.label)}')">${escapeHtml(l.label)}</a></li>`;
         });
         html += `</ul>`;
       }
 
-      html += `<button type="button" class="pc-tts-btn" onclick="speakText('${(res.title || "")} ${(res.message || "").replace(/[*_]/g, "")}')">🔊 Vorlesen</button>`;
+      const ttsStd = `${res.title || ""} ${(res.message || "").replace(/[*_]/g, "")}`;
+      html += `<button type="button" class="pc-tts-btn" data-tts="${escapeHtml(ttsStd)}">🔊 Vorlesen</button>`;
 
       if (res.chips && res.chips.length > 0) {
         html += `<div class="pc-chips">`;
         res.chips.forEach(c => {
-          html += `<button class="pc-chip" onclick="handleChipClick('${c}')">${c}</button>`;
+          html += `<button class="pc-chip" data-query="${escapeHtml(c)}">${escapeHtml(c)}</button>`;
         });
         html += `</div>`;
       }
@@ -1004,7 +1080,7 @@
       if (cKeys.length === 0) {
         clinicListEl.innerHTML = `<li style="color: #888;">Noch keine Standorte geroutet.</li>`;
       } else {
-        clinicListEl.innerHTML = cKeys.map(k => `<li><strong>${k}</strong> <span>${metrics.clinicRoutingCounts[k]}x</span></li>`).join("");
+        clinicListEl.innerHTML = cKeys.map(k => `<li><strong>${escapeHtml(k)}</strong> <span>${Number(metrics.clinicRoutingCounts[k]) || 0}x</span></li>`).join("");
       }
 
       // Intents rendern
@@ -1013,16 +1089,22 @@
       if (iKeys.length === 0) {
         intentListEl.innerHTML = `<li style="color: #888;">Noch keine Kategorien erfasst.</li>`;
       } else {
-        intentListEl.innerHTML = iKeys.map(k => `<li><strong>${k}</strong> <span>${metrics.intentCounts[k]}x</span></li>`).join("");
+        intentListEl.innerHTML = iKeys.map(k => `<li><strong>${escapeHtml(k)}</strong> <span>${Number(metrics.intentCounts[k]) || 0}x</span></li>`).join("");
       }
 
-      // Content-Gaps rendern
+      // Content-Gaps rendern (DOM XSS Fix)
       const gapPillsEl = document.getElementById("mGapPills");
       const gaps = metrics.contentGaps || [];
       if (gaps.length === 0) {
         gapPillsEl.innerHTML = `<span style="font-size: 12px; color: #888;">Keine ungelösten Anfragen erfasst.</span>`;
       } else {
-        gapPillsEl.innerHTML = gaps.map(g => `<span class="gap-pill">„${g}“</span>`).join("");
+        gapPillsEl.innerHTML = "";
+        gaps.forEach(g => {
+          const pill = document.createElement("span");
+          pill.className = "gap-pill";
+          pill.textContent = `„${g}“`;
+          gapPillsEl.appendChild(pill);
+        });
       }
 
       document.getElementById("analyticsModal").classList.add("active");
