@@ -66,13 +66,13 @@
         </div>
       </div>
 
-      <div class="pc-safety-bar">
-        <span>Kein Notfalldienst &bull; Reiner Wegweiser</span>
-        <a href="tel:112" class="pc-emergency-badge">Notruf 112</a>
-      </div>
-
-      <div class="pc-privacy-notice">
-        🔒 <strong>Datenschutz & MDR-Hinweis:</strong> Reiner Orientierungsdienst ohne medizinische Diagnostik. Keine Klarnamen eingeben. Suchbegriffe werden streng anonymisiert ausgewertet.
+      <div class="pc-safety-banner">
+        <div class="pc-safety-left">
+          <span class="pc-legal-badge" title="Reiner Orientierungsdienst ohne medizinische Diagnostik. Keine Klarnamen erfassen. DSGVO Art. 9 & MDR konform.">
+            🔒 Reiner Lotsendienst &bull; Keine Diagnostik
+          </span>
+        </div>
+        <a href="tel:112" class="pc-emergency-badge">🚨 Notruf 112</a>
       </div>
 
       <div class="pc-messages-area" id="pcDrawerMessages" role="log" aria-live="polite">
@@ -160,10 +160,19 @@
     const voiceBtn = document.getElementById("pcVoiceBtn");
     const fontBtn = document.getElementById("pcFontBtn");
 
-    let isLargeFont = false;
+    let fontCycleIndex = 0;
     fontBtn.addEventListener("click", () => {
-      isLargeFont = !isLargeFont;
-      drawer.classList.toggle("font-size-large", isLargeFont);
+      fontCycleIndex = (fontCycleIndex + 1) % 3;
+      drawer.classList.remove("font-size-large", "font-size-xlarge");
+      if (fontCycleIndex === 1) {
+        drawer.classList.add("font-size-large");
+        fontBtn.innerText = "A++";
+      } else if (fontCycleIndex === 2) {
+        drawer.classList.add("font-size-xlarge");
+        fontBtn.innerText = "A";
+      } else {
+        fontBtn.innerText = "A+";
+      }
     });
 
     const langSelect = document.getElementById("pcLangSelect");
@@ -402,6 +411,7 @@
         html += `
           <div class="pc-clinic-card">
             <div class="pc-clinic-header">
+              <span class="pc-clinic-badge">Empfohlenes Fachzentrum</span>
               <span class="pc-clinic-name">${res.clinic.name}</span>
               <span class="pc-clinic-location">📍 ${res.clinic.city} &bull; ${res.clinic.type}</span>
             </div>

@@ -616,7 +616,41 @@ strong, b, .bold {
   transform: rotate(90deg);
 }
 
-/* Safety Bar */
+/* ==========================================================================
+   Kompakter Sicherheits- & Rechts-Banner (MDR & DSGVO integriert)
+   ========================================================================== */
+.pc-safety-banner {
+  background-color: #f1f6f5;
+  border-bottom: 1px solid rgba(18, 62, 64, 0.08);
+  padding: 6px 14px;
+  font-size: 11px;
+  color: #4b6667;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.pc-safety-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pc-legal-badge {
+  font-size: 10.5px;
+  color: #557273;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  cursor: default;
+}
+
+/* Legacy Safety Bar & Privacy Notice */
 .pc-safety-bar {
   background-color: #f1f6f5;
   border-bottom: 1px solid rgba(18, 62, 64, 0.08);
@@ -633,9 +667,19 @@ strong, b, .bold {
   color: white;
   text-decoration: none;
   font-weight: 700;
-  font-size: 10px;
-  padding: 2px 7px;
-  border-radius: 4px;
+  font-size: 10.5px;
+  padding: 3px 9px;
+  border-radius: var(--radius-pille);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  transition: background-color 0.2s ease, transform 0.15s ease;
+}
+
+.pc-emergency-badge:hover {
+  background-color: #b71c1c;
+  transform: scale(1.03);
 }
 
 /* Privacy & MDR Opt-In Notice */
@@ -663,12 +707,24 @@ strong, b, .bold {
   gap: 14px;
 }
 
+@keyframes messageSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .pc-msg {
   max-width: 88%;
   font-size: 13.5px;
   line-height: 1.48;
   border-radius: var(--radius-karte);
   padding: 13px 17px;
+  animation: messageSlideIn 0.22s var(--ease-edel) forwards;
 }
 
 .pc-msg.bot {
@@ -759,6 +815,20 @@ strong, b, .bold {
   display: flex;
   flex-direction: column;
   margin-bottom: 8px;
+}
+
+.pc-clinic-badge {
+  display: inline-block;
+  align-self: flex-start;
+  background: var(--gruen);
+  color: var(--weiss);
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 2px 7px;
+  border-radius: 4px;
+  margin-bottom: 5px;
 }
 
 .pc-clinic-name {
@@ -1068,24 +1138,38 @@ strong, b, .bold {
 }
 
 /* ==========================================================================
-   Executive Showcase Bar (Präsentationsleiste für Klinikleitung & Maike)
+   Showcase & System-Audit Bar (Demoszenarien & Qualitätsprüfung)
    ========================================================================== */
-.executive-demo-bar {
+.showcase-bar, .executive-demo-bar {
   background: linear-gradient(90deg, #073136 0%, #123e40 100%);
   color: var(--weiss);
-  padding: 10px 24px;
+  padding: 8px 24px;
   border-bottom: 2px solid var(--tuerkis);
+  position: relative;
+  z-index: 101;
+  transition: all 0.3s var(--ease-edel);
+  max-height: 120px;
+  overflow: hidden;
+}
+
+.showcase-bar.collapsed {
+  max-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.showcase-bar-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-wrap: wrap;
-  gap: 12px;
-  font-size: 13px;
-  position: relative;
-  z-index: 101;
+  gap: 10px;
 }
 
-.exec-title-tag {
+.showcase-title-tag, .exec-title-tag {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -1093,50 +1177,96 @@ strong, b, .bold {
   letter-spacing: 0.5px;
   color: var(--tuerkis);
   text-transform: uppercase;
-  font-size: 12px;
+  font-size: 11.5px;
 }
 
-.exec-scenario-buttons {
+.showcase-buttons, .exec-scenario-buttons {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
 }
 
-.exec-btn {
+.showcase-btn, .exec-btn {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid rgba(149, 200, 186, 0.4);
   color: var(--weiss);
   font-family: inherit;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 600;
-  padding: 5px 12px;
+  padding: 4px 11px;
   border-radius: var(--radius-pille);
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
 }
 
-.exec-btn:hover {
+.showcase-btn:hover, .exec-btn:hover {
   background-color: var(--tuerkis);
   color: var(--gruen);
   border-color: var(--tuerkis);
 }
 
-.exec-btn.highlight {
+.showcase-btn.highlight, .exec-btn.highlight {
   background-color: var(--tuerkis);
   color: var(--gruen);
   font-weight: 700;
 }
 
-.exec-btn.alert {
+.showcase-btn.alert, .exec-btn.alert {
   border-color: #ff8585;
   color: #ffb4b4;
 }
 
-.exec-btn.alert:hover {
+.showcase-btn.alert:hover, .exec-btn.alert:hover {
   background-color: #d32f2f;
   color: white;
+}
+
+.showcase-toggle-btn {
+  background: none;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  color: var(--weiss);
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 9px;
+  border-radius: var(--radius-pille);
+  cursor: pointer;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+}
+
+.showcase-toggle-btn:hover {
+  opacity: 1;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.showcase-reopen-btn {
+  position: fixed;
+  top: 12px;
+  right: 18px;
+  z-index: 1000;
+  background: var(--gruen);
+  color: var(--tuerkis);
+  border: 1px solid var(--tuerkis);
+  font-family: var(--font-brand);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: var(--radius-pille);
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(7, 49, 54, 0.25);
+  transition: all 0.2s var(--ease-edel);
+}
+
+.showcase-reopen-btn.hidden {
+  display: none;
+}
+
+.showcase-reopen-btn:hover {
+  background: var(--petrol);
+  color: var(--weiss);
+  transform: translateY(-1px);
 }
 
 /* ==========================================================================
@@ -1338,6 +1468,19 @@ strong, b, .bold {
   opacity: 0.6;
 }
 
+.pc-checklist-complete-badge {
+  background: rgba(149, 200, 186, 0.25);
+  border: 1px solid var(--tuerkis);
+  color: var(--gruen);
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: var(--radius-pille);
+  text-align: center;
+  margin-top: 10px;
+  animation: fadeIn 0.3s ease;
+}
+
 /* ==========================================================================
    Zuweiser- & Facharzt-Karten
    ========================================================================== */
@@ -1517,19 +1660,27 @@ strong, b, .bold {
     padding: 8px 16px 8px 10px;
   }
 
-  /* Vollbild auf mobilen Geräten für bestes App-Feeling */
+  /* Vollbild auf mobilen Geräten für bestes App-Feeling (mit Safe-Area Support) */
   .paracelsus-chat-window {
     top: 0;
     left: 0;
     right: 0;
     bottom: 0;
     width: 100vw;
-    height: 100vh;
+    height: 100dvh;
     max-width: 100vw;
-    max-height: 100vh;
+    max-height: 100dvh;
     border-radius: 0;
     border: none;
     z-index: 100000;
+  }
+
+  .pc-header {
+    padding-top: max(14px, env(safe-area-inset-top));
+  }
+
+  .pc-input-bar {
+    padding-bottom: max(12px, env(safe-area-inset-bottom));
   }
 
   .analytics-stat-grid {
@@ -1539,4 +1690,15 @@ strong, b, .bold {
   .analytics-split {
     grid-template-columns: 1fr;
   }
+}
+
+/* ==========================================================================
+   Barrierefreier Tastatur-Fokus (BITV 2.0 / WCAG)
+   ========================================================================== */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--tuerkis) !important;
+  outline-offset: 2px !important;
 }

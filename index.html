@@ -3,29 +3,35 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Paracelsus Kliniken — Digitaler Klinik-Wegweiser (Executive Preview v3.5)</title>
+  <title>Paracelsus Kliniken — Digitaler Klinik-Wegweiser</title>
   <link rel="stylesheet" href="src/widget.css">
 </head>
 <body>
 
   <!-- =========================================================================
-       Executive Showcase Bar (Präsentationsleiste für Klinikleitung & Maike)
+       Live-Szenarien & Audit-Leiste (Schnellprüfung aller Kernsysteme)
        ========================================================================= -->
-  <aside class="executive-demo-bar" aria-label="Präsentationssteuerung">
-    <div class="exec-title-tag">
-      <span>🏛️ Präsentation: Klinikleitung & Marketing</span>
-    </div>
-    <div class="exec-scenario-buttons">
-      <button class="exec-btn alert" onclick="triggerScenario('notfall')" title="Notfall-Triage testen">🚨 Notfall-Stopp (112)</button>
-      <button class="exec-btn" onclick="triggerScenario('davinci')" title="DaVinci Robotik Düsseldorf">🤖 DaVinci Urologie</button>
-      <button class="exec-btn" onclick="triggerScenario('parkinson')" title="Parkinson Elena-Klinik Kassel">🧠 Parkinson Kassel</button>
-      <button class="exec-btn" onclick="triggerScenario('checkliste')" title="Interaktive Koffer-Packliste">📋 Interaktive Packliste</button>
-      <button class="exec-btn" onclick="triggerScenario('zuweiser')" title="Zuweiser & Ärzteportal">🩺 Zuweiser-Portal</button>
-      <button class="exec-btn" onclick="triggerScenario('karriere')" title="Pflege & Karriere">💼 Pflege-Recruiting</button>
-      <button class="exec-btn highlight" onclick="openAnalyticsModal()">📊 Marketing-Dashboard</button>
-      <button class="exec-btn" onclick="openComplianceModal()">🛡️ MDR & DSGVO Zertifikat</button>
+  <aside class="showcase-bar" id="showcaseBar" aria-label="Live-Demoszenarien">
+    <div class="showcase-bar-inner">
+      <div class="showcase-title-tag">
+        <span>⚡ Live-Szenarien & Audit</span>
+      </div>
+      <div class="showcase-buttons">
+        <button class="showcase-btn alert" onclick="triggerScenario('notfall')" title="Notfall-Triage testen">🚨 Notfall-Stopp (112)</button>
+        <button class="showcase-btn" onclick="triggerScenario('davinci')" title="DaVinci Robotik Düsseldorf">🤖 DaVinci Urologie</button>
+        <button class="showcase-btn" onclick="triggerScenario('parkinson')" title="Parkinson Elena-Klinik Kassel">🧠 Parkinson Kassel</button>
+        <button class="showcase-btn" onclick="triggerScenario('checkliste')" title="Interaktive Koffer-Packliste">📋 Interaktive Packliste</button>
+        <button class="showcase-btn" onclick="triggerScenario('zuweiser')" title="Zuweiser & Ärzteportal">🩺 Zuweiser-Portal</button>
+        <button class="showcase-btn" onclick="triggerScenario('karriere')" title="Pflege & Karriere">💼 Pflege-Recruiting</button>
+        <button class="showcase-btn highlight" onclick="openAnalyticsModal()">📊 Marketing-Dashboard</button>
+        <button class="showcase-btn" onclick="openComplianceModal()">🛡️ MDR & DSGVO Nachweis</button>
+      </div>
+      <button class="showcase-toggle-btn" onclick="toggleShowcaseBar()" title="Leiste ausblenden">✕ Ausblenden</button>
     </div>
   </aside>
+  <button class="showcase-reopen-btn hidden" id="showcaseReopenBtn" onclick="toggleShowcaseBar()" title="Live-Szenarien einblenden">
+    ⚡ Live-Szenarien
+  </button>
 
   <!-- =========================================================================
        Paracelsus Kliniken Website Header
@@ -155,7 +161,7 @@
       
       <!-- Accessibility & Language Bar -->
       <div class="pc-header-controls">
-        <button class="pc-font-btn" onclick="toggleFontSize()" title="Schrift vergrößern (Senioren-Modus)">A+</button>
+        <button class="pc-font-btn" id="pcFontBtn" onclick="cycleFontSize()" title="Schriftgröße anpassen (Standard / Groß / Sehr groß)">A+</button>
         <div class="pc-lang-picker" title="Sprache auswählen">
           <span class="pc-lang-globe" aria-hidden="true">🌐</span>
           <select class="pc-lang-select" id="pcLangSelect" onchange="switchLanguage(this.value)" aria-label="Sprache auswählen">
@@ -169,15 +175,14 @@
       </div>
     </div>
 
-    <!-- Safety Disclaimer Bar -->
-    <div class="pc-safety-bar">
-      <span>Kein Notfalldienst &bull; Reiner Wegweiser</span>
-      <a href="tel:112" class="pc-emergency-badge" onclick="engine.analytics.recordClick('emergency', '112')">Notruf 112</a>
-    </div>
-
-    <!-- DSGVO & MDR Opt-In Notice -->
-    <div class="pc-privacy-notice">
-      🔒 <strong>Datenschutz & MDR-Hinweis:</strong> Reiner Orientierungsdienst ohne medizinische Diagnostik. Keine Klarnamen eingeben. Suchbegriffe werden streng anonymisiert ausgewertet.
+    <!-- Unified Safety & Legal Banner -->
+    <div class="pc-safety-banner">
+      <div class="pc-safety-left">
+        <span class="pc-legal-badge" title="Reiner Orientierungsdienst ohne medizinische Diagnostik. Keine Klarnamen erfassen. DSGVO Art. 9 & MDR konform.">
+          🔒 Reiner Lotsendienst &bull; Keine Diagnostik
+        </span>
+      </div>
+      <a href="tel:112" class="pc-emergency-badge" onclick="engine.analytics.recordClick('emergency', '112')">🚨 Notruf 112</a>
     </div>
 
     <!-- Message Stream -->
@@ -302,7 +307,7 @@
   </div>
 
   <!-- =========================================================================
-       MDR & DSGVO Compliance Zertifikat Modal (Für Klinikleitung & Justiziariat)
+       MDR & DSGVO Compliance Gutachten (Rechtliche Dokumentation)
        ========================================================================= -->
   <div class="analytics-modal-backdrop" id="complianceModal" onclick="if(event.target===this) closeComplianceModal()">
     <div class="analytics-modal-card">
@@ -310,7 +315,7 @@
         <div>
           <div class="analytics-modal-title">🛡️ Rechtliche Compliance & MDR-Gutachten</div>
           <p style="font-size: 13px; color: var(--salbei); margin-top: 2px;">
-            Sicherheits- und Rechtsaudit für die Geschäftsführung der Paracelsus Kliniken
+            Sicherheits- und Qualitätsaudit für den Regelbetrieb der Paracelsus Kliniken
           </p>
         </div>
         <button class="analytics-close-btn" onclick="closeComplianceModal()">&times;</button>
@@ -350,14 +355,32 @@
     const chatInput = document.getElementById("pcInput");
     const voiceBtn = document.getElementById("voiceSearchBtn");
 
-    let isLargeFont = false;
-
-    function toggleFontSize() {
-      isLargeFont = !isLargeFont;
-      if (isLargeFont) {
+    let fontCycleIndex = 0; // 0: Normal, 1: Groß, 2: Sehr groß
+    function cycleFontSize() {
+      fontCycleIndex = (fontCycleIndex + 1) % 3;
+      chatWindow.classList.remove("font-size-large", "font-size-xlarge");
+      const btn = document.getElementById("pcFontBtn");
+      if (fontCycleIndex === 1) {
         chatWindow.classList.add("font-size-large");
+        if (btn) btn.innerText = "A++";
+      } else if (fontCycleIndex === 2) {
+        chatWindow.classList.add("font-size-xlarge");
+        if (btn) btn.innerText = "A";
       } else {
-        chatWindow.classList.remove("font-size-large");
+        if (btn) btn.innerText = "A+";
+      }
+    }
+    function toggleFontSize() { cycleFontSize(); }
+
+    function toggleShowcaseBar() {
+      const bar = document.getElementById("showcaseBar");
+      const reopenBtn = document.getElementById("showcaseReopenBtn");
+      if (!bar) return;
+      bar.classList.toggle("collapsed");
+      if (bar.classList.contains("collapsed")) {
+        if (reopenBtn) reopenBtn.classList.remove("hidden");
+      } else {
+        if (reopenBtn) reopenBtn.classList.add("hidden");
       }
     }
 
@@ -588,6 +611,7 @@
         });
         html += `
             </div>
+            <div class="pc-checklist-complete-badge" id="packCelebration" style="display: none;">✨ Alles erledigt! Sie sind bestens auf Ihren Aufenthalt vorbereitet.</div>
           </div>
           <button type="button" class="pc-tts-btn" onclick="speakText('${res.message}')">🔊 Vorlesen</button>
         `;
@@ -613,6 +637,7 @@
         html += `
           <div class="pc-clinic-card">
             <div class="pc-clinic-header">
+              <span class="pc-clinic-badge">Empfohlenes Fachzentrum</span>
               <span class="pc-clinic-name">${res.clinic.name}</span>
               <span class="pc-clinic-location">📍 ${res.clinic.city} &bull; ${res.clinic.type}</span>
             </div>
@@ -666,9 +691,14 @@
       const checkedCount = document.querySelectorAll("#checklistWrapper input[type='checkbox']:checked").length;
       const progressText = document.getElementById("packProgressText");
       const progressBar = document.getElementById("packProgressBar");
+      const celebration = document.getElementById("packCelebration");
       if (progressText && progressBar) {
         progressText.innerText = `${checkedCount} von ${total} erledigt`;
-        progressBar.style.width = `${Math.round((checkedCount / total) * 100)}%`;
+        const pct = Math.round((checkedCount / total) * 100);
+        progressBar.style.width = `${pct}%`;
+        if (celebration) {
+          celebration.style.display = checkedCount === total ? "block" : "none";
+        }
       }
     }
 
