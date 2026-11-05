@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Paracelsus Kliniken — Digitaler Klinik-Wegweiser</title>
-  <link rel="stylesheet" href="src/widget.css">
+  <link rel="stylesheet" href="src/widget.css?v=20261105b">
 </head>
 <body>
   <a href="#mainContent" class="skip-link visually-hidden">Zum Hauptinhalt springen</a>
@@ -344,20 +344,6 @@
       </div>
     </div>
 
-    <!-- Segmented Mode Control (Frosted Glass Pill wie in Referenz) -->
-    <div class="pc-mode-pill-bar">
-      <div class="pc-mode-toggle" role="tablist" aria-label="Eingabemodus auswählen">
-        <button type="button" class="pc-mode-btn active" id="pcModeChat" onclick="switchMode('chat')">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-          Chat
-        </button>
-        <button type="button" class="pc-mode-btn" id="pcModeVoice" onclick="switchMode('voice')">
-          <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-          Sprache
-        </button>
-      </div>
-    </div>
-
     <!-- Translucent Safety & Legal Banner -->
     <div class="pc-safety-banner">
       <div class="pc-safety-left">
@@ -388,9 +374,6 @@
     <!-- Floating Glass Input Dock -->
     <form class="pc-input-bar" id="pcForm" onsubmit="handleFormSubmit(event)">
       <label for="pcInput" class="visually-hidden">Ihre Frage oder Beschwerde an den Paracelsus Wegweiser</label>
-      <button type="button" class="pc-dock-btn" onclick="handleChipClick('Checkliste für den Klinikaufenthalt')" title="Aufnahme-Packliste öffnen" aria-label="Packliste">
-        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 6.5l-8.5 8.5a3 3 0 004.24 4.24l9.19-9.19a4.5 4.5 0 00-6.36-6.36l-9.2 9.19a6 6 0 008.49 8.49l8.48-8.49"/></svg>
-      </button>
       <input 
         type="text" 
         id="pcInput" 

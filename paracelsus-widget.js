@@ -68,20 +68,6 @@
         </div>
       </div>
 
-      <!-- Segmented Mode Control -->
-      <div class="pc-mode-pill-bar">
-        <div class="pc-mode-toggle" role="tablist">
-          <button type="button" class="pc-mode-btn active" id="pcModeChat">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M20 2H4c-1.1 0-1.99.9-1.99 2L2 22l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"/></svg>
-            Chat
-          </button>
-          <button type="button" class="pc-mode-btn" id="pcModeVoice">
-            <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/><path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-            Sprache
-          </button>
-        </div>
-      </div>
-
       <div class="pc-safety-banner">
         <div class="pc-safety-left">
           <span class="pc-legal-badge" title="Reiner Orientierungsdienst ohne medizinische Diagnostik. Keine Klarnamen erfassen. DSGVO Art. 9 & MDR konform.">
@@ -109,9 +95,6 @@
 
       <form class="pc-input-bar" id="pcDrawerForm">
         <label for="pcDrawerInput" class="visually-hidden">Ihre Frage an den Paracelsus Wegweiser</label>
-        <button type="button" class="pc-dock-btn" id="pcPacklisteDockBtn" title="Koffer-Packliste anzeigen" aria-label="Packliste">
-          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 6.5l-8.5 8.5a3 3 0 004.24 4.24l9.19-9.19a4.5 4.5 0 00-6.36-6.36l-9.2 9.19a6 6 0 008.49 8.49l8.48-8.49"/></svg>
-        </button>
         <input 
           type="text" 
           id="pcDrawerInput" 
