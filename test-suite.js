@@ -527,6 +527,104 @@ runTest("Security", "Emoji-only and punctuation input handled safely", () => {
 });
 
 // =============================================================================
+// 12. CLINICAL FAQ & SMART INTENT HANDLERS
+// =============================================================================
+runTest("SmartFAQ", "Greetings warmly answered with orientation chips", () => {
+  const res = engine.processQuery("Hallo, wer bist du?");
+  assert.strictEqual(res.type, "info");
+  assert(res.title.includes("Willkommen"));
+  assert(res.chips && res.chips.length >= 4);
+});
+
+runTest("SmartFAQ", "Farewell and gratitude warmly acknowledged", () => {
+  const res = engine.processQuery("Danke für die Hilfe!");
+  assert.strictEqual(res.type, "info");
+  assert(res.title.includes("Sehr gerne"));
+});
+
+runTest("SmartFAQ", "Hospital costs and statutory co-payment (§ 39 SGB V) explained", () => {
+  const res = engine.processQuery("Was kostet ein Einzelzimmer?");
+  assert.strictEqual(res.type, "info");
+  assert(res.message.includes("10 €"));
+});
+
+runTest("SmartFAQ", "Patient referral vs. hospital admission order explained", () => {
+  const res = engine.processQuery("Brauche ich eine Überweisung vom Hausarzt?");
+  assert.strictEqual(res.type, "info");
+  assert(res.message.includes("Überweisung"));
+  assert(res.message.includes("Einweisung"));
+});
+
+runTest("SmartFAQ", "Free patient Wi-Fi and TV amenities answered directly", () => {
+  const res = engine.processQuery("Haben Sie WLAN auf den Zimmern?");
+  assert.strictEqual(res.type, "info");
+  assert(res.message.includes("WLAN"));
+});
+
+runTest("SmartFAQ", "Admission day step-by-step process explained", () => {
+  const res = engine.processQuery("Wie läuft die Aufnahme ab?");
+  assert.strictEqual(res.type, "info");
+  assert(res.title.includes("Aufnahme"));
+});
+
+runTest("SmartFAQ", "Independent second opinion service presented", () => {
+  const res = engine.processQuery("Ich brauche eine Zweitmeinung vor einer Knie-OP");
+  assert.strictEqual(res.type, "info");
+  assert(res.title.includes("Zweitmeinung"));
+});
+
+runTest("SmartFAQ", "Payment methods (EC-card, credit card, cash) confirmed", () => {
+  const res = engine.processQuery("Kann man bei Ihnen mit Karte zahlen?");
+  assert.strictEqual(res.type, "info");
+  assert(res.message.includes("EC-Karte"));
+});
+
+runTest("SmartFAQ", "Rooming-in and partner accommodation options explained", () => {
+  const res = engine.processQuery("Kann mein Partner bei mir im Zimmer übernachten?");
+  assert.strictEqual(res.type, "info");
+  assert(res.message.includes("Begleitperson"));
+});
+
+// =============================================================================
+// 13. FALSE-POSITIVE IMMUNITY & DISAMBIGUATION (Stopwords & Precision)
+// =============================================================================
+runTest("Precision", "Rückenschmerzen routes to Bremen, NEVER false-matched to Hagen/Düsseldorf", () => {
+  const res = engine.processQuery("Ich habe starke Rückenschmerzen seit 2 Wochen");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "bremen");
+});
+
+runTest("Precision", "Parkinson query routes to Kassel, NEVER false-matched to Peine/Langenhagen", () => {
+  const res = engine.processQuery("Mein Vater hat Parkinson, wo können wir hin?");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "kassel-elena");
+});
+
+runTest("Precision", "Elevated PSA level routes to Düsseldorf Golzheim prostate center", () => {
+  const res = engine.processQuery("Mein PSA-Wert ist erhöht, was soll ich tun?");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "duesseldorf-golzheim");
+});
+
+runTest("Precision", "Urethral stricture (Harnröhrenstriktur) routes to Düsseldorf Golzheim", () => {
+  const res = engine.processQuery("Harnröhrenstriktur Behandlung");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "duesseldorf-golzheim");
+});
+
+runTest("Precision", "Acute right lower abdominal pain routes to Henstedt-Ulzburg surgery", () => {
+  const res = engine.processQuery("Bauchschmerzen rechts unten seit heute morgen");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "henstedt-ulzburg");
+});
+
+runTest("Precision", "Addiction and alcohol detox routes to Langenhagen am Silbersee", () => {
+  const res = engine.processQuery("Ich suche eine Klinik für Suchttherapie / Alkoholentzug");
+  assert.strictEqual(res.type, "match");
+  assert.strictEqual(res.clinic.id, "langenhagen-silbersee");
+});
+
+// =============================================================================
 // SUMMARY REPORT
 // =============================================================================
 console.log("===============================================================================");

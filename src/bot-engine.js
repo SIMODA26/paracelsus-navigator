@@ -1,14 +1,14 @@
 /**
  * Paracelsus Kliniken — Digitaler Wegweiser & Clinical Triage Engine
- * Version: 3.6.0 (Enterprise Multi-Lingual, Accessibility, ICS Calendar & Subtle Feedback)
+ * Version: 4.0.0 (Enterprise Smart Intent Matching, Stopwords Filter & Clinical FAQ)
  * 
  * Compliance & Standards:
  * - MDR (EU 2017/745): Reines Orientierungs- und Navigationssystem (keine Diagnostik / Therapie)
  * - DSGVO Art. 9: Strikte Client-Side PII-Anonymisierung sensibler Gesundheitsdaten
- * - Keine Zweiklassengesellschaft: Gleichbehandlung aller Patienten
+ * - Gleichbehandlung: Keine Zweiklassengesellschaft, keine interne Hierarchie-Kommunikation
  */
 
-// 1. Detaillierter Notfallkatalog
+// 1. Detaillierter Notfallkatalog (112 / Krisen-Hotlines)
 const EMERGENCY_CATEGORIES = {
   CARDIOVASCULAR: {
     pattern: /herzinfarkt|brustschmerz[a-z]*|schmerzen?\s*(in\s*der\s*)?brust|engegefühl\s*brust|druck\s*auf\s*der\s*brust|(ausstrahl[a-z]*.*(arm|kiefer))|((arm|kiefer).*ausstrahl[a-z]*)|herzrasen\s*akut|heart\s*attack|chest\s*pain/i,
@@ -138,10 +138,27 @@ const UNSUPPORTED_DISCIPLINES = [
   }
 ];
 
-// 3. PII-Scrubber (Strikte Anonymisierung nach DSGVO Art. 9)
+// 3. Strikte Deutsche Stoppwörter (verhindert Fehl-Matches wie "haben" -> "Hagen", "mein" -> "Peine")
+const STOPWORDS = new Set([
+  "ich", "du", "er", "sie", "es", "wir", "ihr", "mein", "meine", "meinen", "meinem", "meiner", "meines",
+  "haben", "habe", "hast", "hat", "hatte", "hatten", "sein", "bin", "bist", "ist", "sind", "war", "waren",
+  "werden", "wird", "wurde", "wurden", "können", "kann", "kannst", "könnt", "müssen", "muss", "musst",
+  "sollen", "soll", "sollte", "wollen", "will", "willst", "dürfen", "darf", "bitte", "danke", "vielen",
+  "hallo", "guten", "tag", "morgen", "abend", "servus", "moin", "hi", "hey",
+  "wo", "wie", "was", "wann", "warum", "wer", "wohin", "woher", "welche", "welcher", "welches",
+  "ein", "eine", "einer", "eines", "einem", "einen", "der", "die", "das", "den", "dem", "des",
+  "und", "oder", "aber", "denn", "für", "mit", "nach", "von", "bei", "seit", "über", "unter", "vor", "zwischen",
+  "sehr", "viel", "viele", "etwas", "schon", "noch", "auch", "immer", "wieder", "hier", "dort", "jetzt", "mal",
+  "zimmer", "zimmern", "klinik", "kliniken", "krankenhaus", "hospital", "arzt", "ärzte", "doktor", "fragen",
+  "hilfe", "suchen", "suche", "suchte", "beratung", "behandlung", "anfrage", "anliegen", "information",
+  "gehe", "gehen", "geht", "ging", "komme", "kommen", "kommt", "kam"
+]);
+
+// 4. PII-Scrubber (Strikte Anonymisierung nach DSGVO Art. 9)
 function scrubPII(text) {
   if (!text) return "";
   let clean = text;
+  // Geburtsdatum (vor Telefonnummern matchen, um falsche Zerlegung zu verhindern)
   clean = clean.replace(/\b\d{1,2}\.\d{1,2}\.\d{2,4}\b/g, "[DATUM ANONYMISIERT]");
   clean = clean.replace(/\b[A-Za-z]\d{9}\b/g, "[VERSICHERTEN-NR ANONYMISIERT]");
   clean = clean.replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,9}/g, "[TELEFON ANONYMISIERT]");
@@ -151,7 +168,7 @@ function scrubPII(text) {
   return clean;
 }
 
-// 4. UTM-Link-Generator
+// 5. UTM-Link-Generator
 function buildMarketingUrl(baseUrl, clinicId, intent) {
   if (!baseUrl) return "#";
   try {
@@ -168,7 +185,7 @@ function buildMarketingUrl(baseUrl, clinicId, intent) {
   }
 }
 
-// 5. Kalender-Export (.ics iCalendar Generator für das Smartphone)
+// 6. Kalender-Export (.ics iCalendar Generator für das Smartphone)
 function createCalendarEventContent(clinic) {
   if (!clinic) return null;
   const now = new Date();
@@ -200,7 +217,7 @@ function createCalendarEventContent(clinic) {
   return ics;
 }
 
-// 6. Metropolregionen- & Umland-Mapping
+// 7. Metropolregionen- & Umland-Mapping (Exakte Wortgrenzen)
 const REGION_MAPPING = {
   "duesseldorf-golzheim": [
     "köln", "cologne", "bonn", "dortmund", "essen", "duisburg", "bochum",
@@ -234,7 +251,7 @@ const REGION_MAPPING = {
   ]
 };
 
-// 7. Fuzzy-Matching & Tippfehler-Toleranz (Levenshtein-Distanz)
+// 8. Sicheres Levenshtein & Fuzzy-Matching
 function getLevenshteinDistance(a, b) {
   if (a.length === 0) return b.length;
   if (b.length === 0) return a.length;
@@ -256,21 +273,37 @@ function getLevenshteinDistance(a, b) {
   return matrix[b.length][a.length];
 }
 
-function fuzzyContains(query, term) {
-  if (!query || !term) return false;
-  const cleanTerm = term.toLowerCase();
-  if (query.includes(cleanTerm)) return true;
+function safeFuzzyMatch(queryWords, term) {
+  if (!term || typeof term !== "string") return false;
+  const cleanTerm = term.toLowerCase().trim();
   if (cleanTerm.length < 5) return false;
-  const words = query.split(/[\s,.\-?!;:]+/);
-  for (const word of words) {
-    if (word.length >= 4 && Math.abs(word.length - cleanTerm.length) <= 2) {
-      if (getLevenshteinDistance(word, cleanTerm) <= 2) return true;
+
+  for (const word of queryWords) {
+    if (STOPWORDS.has(word)) continue;
+    if (word.length < 5) continue;
+    // Erster Buchstabe muss zwingend übereinstimmen (verhindert cross-topic Verwechslungen)
+    if (word[0] !== cleanTerm[0]) continue;
+
+    if (cleanTerm.length <= 7) {
+      if (Math.abs(word.length - cleanTerm.length) <= 1 && getLevenshteinDistance(word, cleanTerm) <= 1) {
+        return true;
+      }
+    } else {
+      if (Math.abs(word.length - cleanTerm.length) <= 2 && getLevenshteinDistance(word, cleanTerm) <= 2) {
+        return true;
+      }
     }
   }
   return false;
 }
 
-// 6. DSGVO-konformer Analytics-Store mit dezentem Feedback
+function hasWordBoundary(text, word) {
+  if (!text || !word) return false;
+  const reg = new RegExp("(?:^|[^a-zäöüß])" + word.toLowerCase().trim() + "(?:[^a-zäöüß]|$)", "i");
+  return reg.test(text);
+}
+
+// 9. DSGVO-konformer Analytics-Store mit dezentem Feedback
 class ParacelsusAnalyticsStore {
   constructor() {
     this.storageKey = "paracelsus_analytics_v4";
@@ -358,7 +391,7 @@ class ParacelsusAnalyticsStore {
   }
 }
 
-// 7. Haupt-Bot-Engine
+// 10. Haupt-Bot-Engine
 class ParacelsusBotEngine {
   constructor(standorteData) {
     this.standorte = standorteData || [];
@@ -397,7 +430,11 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 1. Notfall-Prüfung
+    const queryWords = query.split(/[\s,.\-?!;:]+/).filter(w => w.length > 0);
+
+    // =========================================================================
+    // 1. NOTFALL-PRÜFUNG (Höchste Priorität: 112 / Krisennotruf)
+    // =========================================================================
     for (const [key, em] of Object.entries(EMERGENCY_CATEGORIES)) {
       if (em.pattern.test(query)) {
         this.analytics.recordQuery(scrubbedInput, "emergency", null, `Notfall: ${key}`, isVoice, lang);
@@ -422,7 +459,9 @@ class ParacelsusBotEngine {
       }
     }
 
-    // 2. Nicht angebotene Fachdisziplinen
+    // =========================================================================
+    // 2. NICHT ANGEBOTENE DISZIPLINEN (Verweis auf 116 117)
+    // =========================================================================
     for (const un of UNSUPPORTED_DISCIPLINES) {
       if (un.pattern.test(query)) {
         this.analytics.recordQuery(scrubbedInput, "unsupported", null, `Nicht angeboten: ${un.name}`, isVoice, lang);
@@ -437,8 +476,85 @@ class ParacelsusBotEngine {
       }
     }
 
-    // 3. Zuweiser & Ärzte-Portal
-    if (/zuweiser|arztportal|(fach)?ärztliche\s*einweisung|urologische\s*einweisung|kollegialer\s*kontakt|befundübermittlung|patient[a-z]*\s*einweisen|patient[a-z]*\s*überweisen|niedergelassene[a-z]*|facharzt|hausarzt|einweisend[a-z]*/i.test(query)) {
+    // =========================================================================
+    // 3. SMARTE FAQ & KONVERSATIONELLE ANTWORTEN
+    // =========================================================================
+
+    // A. Begrüßung & Smalltalk
+    if (/^(hallo|hi|hey|guten\s*(tag|morgen|abend)|moin|servus|grüß\s*gott|wer\s*bist\s*du|was\s*kannst\s*du)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Begrüßung", isVoice, lang);
+      return {
+        type: "info",
+        title: "Willkommen beim Paracelsus Klinik-Wegweiser",
+        message: "Guten Tag! Ich bin der digitale Orientierungsdienst der Paracelsus Kliniken. Ich helfe Ihnen dabei, schnell und unkompliziert den richtigen Fachbereich, das passende Spezialzentrum oder den richtigen Ansprechpartner zu finden.<br><br><strong>Wobei kann ich Ihnen heute behilflich sein?</strong>",
+        chips: [
+          "Parkinson & Neurologie (Kassel)",
+          "Urologie & Prostata (Düsseldorf)",
+          "Orthopädie & Wirbelsäule (Bremen)",
+          "Notaufnahme & Chirurgie (Henstedt-Ulzburg)",
+          "Rheuma & Schmerztherapie (Langenhagen)",
+          "Koffer-Packliste",
+          "Überweisung & Termine"
+        ]
+      };
+    }
+
+    // B. Danksagung & Verabschiedung
+    if (/^(danke|vielen\s*dank|dankeschön|super\s*danke|klasse\s*danke|tschüss|auf\s*wiedersehen|schönen\s*tag|ade)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Danksagung", isVoice, lang);
+      return {
+        type: "info",
+        title: "Sehr gerne!",
+        message: "Ich wünsche Ihnen und Ihren Angehörigen alles Gute und eine rasche Genesung. Sollten Sie weitere Fragen zur Vorbereitung, Anfahrt oder Terminvereinbarung haben, bin ich jederzeit für Sie da.",
+        chips: ["Koffer-Packliste", "Standorte anzeigen", "Neue Frage stellen"]
+      };
+    }
+
+    // C. Kosten, Zuzahlung & Krankenkasse (§ 39 SGB V)
+    if (/\b(kosten|zuzahlung|eigenanteil|selbstzahler|was\s*kostet|krankenkasse|kasse\s*übernimmt|gesetzlich\s*versichert|behandlungskosten)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Kosten & Zuzahlung", isVoice, lang);
+      return {
+        type: "info",
+        title: "Kostenübernahme & Gesetzliche Zuzahlung",
+        message: "Die Kosten eines medizinisch notwendigen Krankenhausaufenthalts werden von den gesetzlichen und privaten Krankenkassen übernommen.<br><br>" +
+          "• **Gesetzliche Zuzahlung (§ 39 Abs. 4 SGB V):** Volljährige gesetzlich Versicherte zahlen **10 € pro Kalendertag** (für maximal 28 Tage im Kalenderjahr). Kinder/Jugendliche unter 18 Jahren und befreite Patienten sind zuzahlungsfrei.<br>" +
+          "• **Wahlleistungen:** Komfortleistungen wie ein Einzelzimmer können über eine private Zusatzversicherung oder als Selbstzahler gebucht werden.<br>" +
+          "• **Zahlung vor Ort:** Zuzahlungen können bequem per EC-Karte, Kreditkarte oder bar beglichen werden.",
+        chips: ["Einzelzimmer / Wahlleistung", "Aufnahme-Checkliste", "Standorte anzeigen"]
+      };
+    }
+
+    // D. Wahlleistung, Einzelzimmer & Begleitperson (Rooming-in)
+    if (/\b(einzelzimmer|zweibettzimmer|wahlleistung|zusatzversicherung|privatpatient|unterbringung|begleitperson|rooming|partner.*übernacht[a-z]*|angehörige.*übernacht[a-z]*)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Wahlleistung & Begleitperson", isVoice, lang);
+      return {
+        type: "info",
+        title: "Unterbringung, Komfort & Begleitpersonen",
+        message: "An unseren Klinikstandorten stehen Ihnen verschiedene Optionen zur Verfügung:<br><br>" +
+          "• **Einzel- & Zweibettzimmer:** Komfortzimmer können je nach Verfügbarkeit gebucht werden (Abrechnung über private Zusatzversicherung oder als Selbstzahlerleistung).<br>" +
+          "• **Begleitperson (Rooming-in):** Die Mitaufnahme einer Begleitperson ist nach vorheriger Absprache mit der jeweiligen Klinik möglich. Bei medizinischer Notwendigkeit übernimmt die Kasse die Kosten, andernfalls erfolgt die Abrechnung als Wahlleistung.<br>" +
+          "• **Gleichbehandlung:** Die medizinische und pflegerische Spitzenversorgung ist für alle Patientinnen und Patienten auf demselben hohen Qualitätsniveau gesichert.",
+        chips: ["Kosten & Zuzahlung", "Aufnahme-Checkliste", "Besuchszeiten"]
+      };
+    }
+
+    // E. Überweisung vs. Einweisung (Patienten-Aufklärung)
+    if (/\b(brauche\s*ich\s*eine\s*überweisung|muss\s*ich\s*zum\s*hausarzt|überweisung\s*oder\s*einweisung|einweisungsschein\s*(nötig|brauche)|brauche\s*ich\s*einen\s*schein)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Patienten-Überweisung", isVoice, lang);
+      return {
+        type: "info",
+        title: "Benötige ich eine Überweisung oder Einweisung?",
+        message: "Je nach Art Ihrer Vorstellung benötigen Sie unterschiedliche Unterlagen:<br><br>" +
+          "• **Ambulante Sprechstunde:** Für fachärztliche Sprechstunden in den Ambulanzen benötigen Sie eine **Überweisung** Ihres Haus- oder Facharztes.<br>" +
+          "• **Geplante stationäre Aufnahme:** Für einen stationären Klinikaufenthalt ist ein **Krankenhaus-Einweisungsschein (Muster 2)** erforderlich.<br>" +
+          "• **Akute Notaufnahme (Henstedt-Ulzburg 24/7):** Im Notfall ist **keine Überweisung erforderlich**. Sie können sich jederzeit direkt vorstellen.<br>" +
+          "• **Privatversicherte:** Benötigen formell keine Einweisung, eine ärztliche Indikation erleichtert jedoch die Abrechnung.",
+        chips: ["Koffer-Packliste", "Termin vereinbaren", "Notaufnahme 24/7"]
+      };
+    }
+
+    // F. Zuweiser & Ärzte-Portal (Exklusiv für einweisende Kolleginnen & Kollegen)
+    if (/zuweiser|arztportal|(fach)?ärztliche\s*einweisung|urologische\s*einweisung|kollegialer\s*kontakt|befundübermittlung|patient[a-z]*\s*einweisen|patient[a-z]*\s*überweisen|niedergelassene[a-z]*|einweisend[a-z]*/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Zuweiser & Ärzte", isVoice, lang);
       return {
         type: "zuweiser",
@@ -454,13 +570,71 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 4. Aufnahme & Koffer-Checkliste
-    if (!/notaufnahme/i.test(query) && /koffer|packliste|was\s*mitbringen|unterlagen|stationäre\s*aufnahme|checkliste|einweisungsschein|was\s*brauche\s*ich|packing\s*list/i.test(query)) {
+    // G. WLAN, Telefon & Zimmerausstattung
+    if (/\b(wlan|wifi|internet|fernseh[a-z]*|tv|telefon\s*(auf|im)\s*zimmer|ausstattung\s*zimmer)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "WLAN & Zimmerausstattung", isVoice, lang);
+      return {
+        type: "info",
+        title: "WLAN, Telefon & Zimmerausstattung",
+        message: "Wir möchten Ihren Aufenthalt so angenehm wie möglich gestalten:<br><br>" +
+          "• **Kostenloses WLAN:** An allen Paracelsus-Standorten steht Patientinnen und Patienten freies Internet über unser Patienten-WLAN zur Verfügung.<br>" +
+          "• **Fernsehen & Radio:** Moderne TV-Geräte sind in den Patientenzimmern vorhanden und können kostenfrei genutzt werden.<br>" +
+          "• **Telefon:** Auf Wunsch kann am Nachttisch ein persönlicher Telefonanschluss freigeschaltet werden (gegen geringe Grundgebühr).",
+        chips: ["Koffer-Packliste", "Besuchszeiten", "Standorte anzeigen"]
+      };
+    }
+
+    // H. Ablauf der stationären Aufnahme
+    if (/\b(ablauf\s*aufnahme|wie\s*läuft\s*die\s*aufnahme|am\s*ersten\s*tag|stationär\s*aufnahme\s*ablauf)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Ablauf Aufnahme", isVoice, lang);
+      return {
+        type: "info",
+        title: "Ablauf Ihres stationären Aufnahmetags",
+        message: "So läuft der erste Tag im Krankenhaus Schritt für Schritt ab:<br><br>" +
+          "1. **Anmeldung am Patientenempfang:** Sie melden sich am zentralen Empfang mit Ihrer Versichertenkarte und dem Einweisungsschein an.<br>" +
+          "2. **Aufnahme auf der Station:** Das Pflegeteam empfängt Sie, zeigt Ihnen Ihr Zimmer und bespricht den Tagesablauf.<br>" +
+          "3. **Ärztliches Aufnahmegespräch:** Erhebung Ihrer Krankengeschichte, Sichtung von Vorbefunden und Medikamenten sowie Erläuterung der Behandlung.<br>" +
+          "4. **Voruntersuchungen:** Je nach Eingriff finden Labor, EKG oder Röntgen-/Ultraschalluntersuchungen statt.",
+        chips: ["Koffer-Packliste", "Benötigte Unterlagen", "Standorte anzeigen"]
+      };
+    }
+
+    // I. Zweitmeinung vor geplanten Eingriffen
+    if (/\b(zweitmeinung|zweite\s*meinung|unsicher\s*ob\s*op|vor\s*einer\s*op|soll\s*ich\s*operieren)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Zweitmeinung", isVoice, lang);
+      return {
+        type: "info",
+        title: "Ärztliche Zweitmeinung bei Paracelsus",
+        message: "Vor planbaren Eingriffen (insbesondere bei Gelenkersatz an Knie/Hüfte, Wirbelsäulenoperationen oder Prostata-Eingriffen) haben Sie als Patient das Recht auf eine unabhängige ärztliche Zweitmeinung.<br><br>" +
+          "• Unsere spezialisierten Fachärzteteams prüfen Ihre vorhandenen MRT-, CT- und Röntgenaufnahmen eingehend.<br>" +
+          "• Wir beraten Sie transparent, ob konservative (nicht-operative) Behandlungsansätze möglich sind.<br>" +
+          "• Bitte bringen Sie zu Ihrem Termin alle bisherigen Vorbefunde und Bildgebungs-CDs mit.",
+        chips: ["Orthopädie Bremen", "Urologie Düsseldorf", "Termin vereinbaren"]
+      };
+    }
+
+    // J. Zahlungsarten vor Ort
+    if (/\b(kartenzahlung|ec-karte|kreditkarte|bar\s*zahlen|mit\s*karte\s*zahlen|bargeld)\b/i.test(query)) {
+      this.analytics.recordQuery(scrubbedInput, "info", null, "Zahlungsmittel", isVoice, lang);
+      return {
+        type: "info",
+        title: "Zahlungsmöglichkeiten an den Standorten",
+        message: "Gesetzliche Eigenanteile, Wahlleistungsrechnungen oder Eigenbeteiligungen können an unseren Patientenaufnahmen und Kassen wie folgt beglichen werden:<br><br>" +
+          "• **EC-Karte (Girocard):** Kontaktlos oder mit PIN möglich.<br>" +
+          "• **Kreditkarten:** Gängige Kreditkarten (Visa, Mastercard) werden akzeptiert.<br>" +
+          "• **Barzahlung:** Zu den regulären Kassenöffnungszeiten möglich.<br>" +
+          "• **Rechnung:** Wahlleistungen können auf Wunsch auch per Überweisung beglichen werden.",
+        chips: ["Kosten & Zuzahlung", "Aufnahme-Checkliste"]
+      };
+    }
+
+    // K. Interaktive Koffer-Checkliste
+    if (!/notaufnahme/i.test(query) && /koffer|packliste|was\s*mitbringen|unterlagen|stationäre\s*aufnahme|checkliste|was\s*brauche\s*ich|packing\s*list/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Aufnahme-Checkliste", isVoice, lang);
       return {
         type: "checklist",
         title: "Interaktive Checkliste für Ihren Klinikaufenthalt",
-        message: "Haken Sie die Dokumente und Dinge direkt auf Ihrem Bildschirm ab, um nichts zu vergessen:",
+        message: "Haken Sie die Dokumente und Dinge direkt auf Ihrem Bildschirm ab, um bestens vorbereitet zu sein:",
         checklistItems: [
           "Einweisungsschein Ihres behandelnden Fach- oder Hausarztes",
           "Elektronische Gesundheitskarte (Krankenkassenkarte)",
@@ -473,8 +647,8 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 5. Besuchszeiten & Parken
-    if (/besuchszeit|besuch|angehörige|parken|parkplatz|anfahrt|öffnungszeit|visiting\s*hours/i.test(query)) {
+    // L. Besuchszeiten, Anfahrt & Parken
+    if (/besuchszeit[a-z]*|besuch[a-z]*|parken|parkplatz|anfahrt|öffnungszeit[a-z]*|visiting\s*hours/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Besucher & Anreise", isVoice, lang);
       return {
         type: "visiting",
@@ -491,8 +665,8 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 6. Karriere & Ausbildung
-    if (/karriere|job|stellenangebot|ausbildung|pflegefachkraft|krankenschwester|arztstelle|famulatur|pj|bewerbung|career/i.test(query)) {
+    // M. Karriere & Ausbildung
+    if (/karriere|job[a-z]*|stellenangebot[a-z]*|ausbildung|pflegefachkraft|krankenschwester|arztstelle|famulatur|pj|bewerbung|career/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "link", "karriere", "Karriere & Recruiting", isVoice, lang);
       return {
         type: "link",
@@ -508,41 +682,45 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 7. Intelligentes Klinik- & Symptom-Matching (mit Metropolregionen & Fuzzy-Toleranz)
+    // =========================================================================
+    // 4. KLINISCHES SCORING & FACHBEREICHS-MATCHING
+    // =========================================================================
     const scoredClinics = this.standorte.map(clinic => {
       let score = 0;
       const matchedTerms = [];
 
-      // A. Direkte Stadt-Erkennung (inkl. Tippfehlern)
-      if (query.includes(clinic.city.toLowerCase()) || fuzzyContains(query, clinic.city)) {
+      // A. Direkte Stadt-Erkennung (z.B. "Düsseldorf", "Bremen", "Kassel")
+      if (hasWordBoundary(query, clinic.city)) {
         score += 15;
+        matchedTerms.push(clinic.city);
+      } else if (safeFuzzyMatch(queryWords, clinic.city)) {
+        score += 10;
         matchedTerms.push(clinic.city);
       }
 
-      // B. Metropolregionen- & Umland-Erkennung (z.B. Köln/Dortmund -> Düsseldorf, Hamburg -> Henstedt-Ulzburg)
+      // B. Metropolregionen- & Umland-Erkennung (Strikte Wortgrenzen, KEIN loses Fuzzy)
       const surroundingCities = REGION_MAPPING[clinic.id] || [];
       for (const city of surroundingCities) {
-        if (query.includes(city) || fuzzyContains(query, city)) {
-          score += 12;
+        if (hasWordBoundary(query, city)) {
+          score += 11;
           matchedTerms.push(`${city.charAt(0).toUpperCase() + city.slice(1)} (Region ${clinic.city})`);
           break;
         }
       }
 
       // C. Bundesland-Match
-      if (query.includes(clinic.state.toLowerCase())) {
-        score += 8;
-      }
-      if (query.includes(clinic.id.split("-")[0])) {
-        score += 10;
+      if (hasWordBoundary(query, clinic.state)) {
+        score += 6;
       }
 
-      // D. Keywords & Laiensynonyme (mit Fuzzy-Toleranz)
+      // D. Keywords & Symptom-Match (mit safeFuzzyMatch für Tippfehler)
       clinic.keywords.forEach(keyword => {
-        if (query.includes(keyword.toLowerCase())) {
-          score += 7;
+        const kwLower = keyword.toLowerCase();
+        if (query.includes(kwLower)) {
+          // Längere und spezifischere Fachbegriffe höher gewichten
+          score += (kwLower.length > 8 || kwLower.includes(" ")) ? 10 : 7;
           matchedTerms.push(keyword);
-        } else if (fuzzyContains(query, keyword)) {
+        } else if (safeFuzzyMatch(queryWords, keyword)) {
           score += 5;
           matchedTerms.push(keyword);
         }
@@ -564,13 +742,39 @@ class ParacelsusBotEngine {
 
     if (topMatches.length > 0) {
       const best = topMatches[0].clinic;
+      const matchedTerms = topMatches[0].matchedTerms;
+
       const trackedClinic = {
         ...best,
-        url: buildMarketingUrl(best.url, best.id, topMatches[0].matchedTerms.join("_")),
+        url: buildMarketingUrl(best.url, best.id, matchedTerms.slice(0, 3).join("_")),
         icsContent: createCalendarEventContent(best)
       };
 
       this.analytics.recordQuery(scrubbedInput, "match", best.id, best.type, isVoice, lang);
+
+      // Intelligente, standort- und kontextbezogene Fachbereichsbeschreibung
+      let contextExplanation = "";
+      if (best.id === "kassel-elena") {
+        contextExplanation = "Als eines der international führenden Referenzzentren für Parkinson und Bewegungsstörungen bietet die **Paracelsus-Elena-Klinik Kassel** eine hochspezialisierte neurologische Komplexbehandlung, modernste Differentialdiagnostik sowie Vor- und Nachsorge bei Tiefer Hirnstimulation (THS).";
+      } else if (best.id === "duesseldorf-golzheim") {
+        contextExplanation = "Die **Paracelsus Klinik Golzheim Düsseldorf** zählt zu den renommiertesten urologischen Fachkliniken Europas. Als zertifiziertes Prostatakarzinomzentrum (DKG) mit zwei DaVinci-Xi-OP-Robotern, MRT-Fusionsbiopsie und moderner Laser-Enukleation bietet sie Spitzenmedizin für schonende Eingriffe an Prostata, Blase und Nieren.";
+      } else if (best.id === "bremen") {
+        contextExplanation = "Mit dem zertifizierten Endoprothetikzentrum (EPZ Max) und einer renommierten Wirbelsäulenchirurgie / Neurochirurgie bietet das Team der **Paracelsus Klinik Bremen** sowohl schonende minimalinvasive Gelenkersatz-Verfahren (Hüft-/Knie-TEP) als auch gezielte Wirbelsäulen- und multimodale Schmerztherapien.";
+      } else if (best.id === "henstedt-ulzburg") {
+        contextExplanation = "Mit einer rund um die Uhr besetzten Zentralen Notaufnahme (ZNA 24/7) sowie spezialisierten Zentren für Bauch-, Hernien- und Allgemeinchirurgie sichert die **Paracelsus Klinik Henstedt-Ulzburg** eine verlässliche Akut- und Notfallversorgung im Norden von Hamburg.";
+      } else if (best.id === "langenhagen-silbersee") {
+        if (/sucht|alkohol|entgiftung|entzug|abhängig/i.test(query)) {
+          contextExplanation = "Die **Paracelsus Klinik am Silbersee Langenhagen** bietet eine spezialisierte, qualifizierte Entzugsbehandlung und Suchtmedizin in einer geschützten, professionellen und wertschätzenden Umgebung.";
+        } else {
+          contextExplanation = "Die **Paracelsus Klinik am Silbersee Langenhagen** vereint hochspezialisierte Fachabteilungen für internistische Rheumatologie, multimodale Schmerztherapie und Gelenkchirurgie mit einem interdisziplinären Team aus Fachärzten und Therapeuten.";
+        }
+      } else if (best.id === "muenchen") {
+        contextExplanation = "Die **Paracelsus Klinik München** in Bogenhausen ist auf hochspezialisierte orthopädische Chirurgie, Sporttraumatologie (Kreuzband, Meniskus, Schulter) und individuelle Belegarztbetreuung fokussiert.";
+      } else if (best.id === "schoeneck") {
+        contextExplanation = "Die **Paracelsus Klinik Schöneck** sichert als Akutkrankenhaus die Grund- und Regelversorgung im oberen Vogtland mit Notfallbehandlung, Innerer Medizin und chirurgischer Versorgung.";
+      } else {
+        contextExplanation = `Für Ihr Anliegen empfehlen wir das spezialisierte Ärzteteam der **${best.name}** in ${best.city}.`;
+      }
 
       const titleMap = {
         de: `Empfohlene Fachklinik: ${best.name}`,
@@ -579,17 +783,10 @@ class ParacelsusBotEngine {
         uk: `Рекомендована клініка: ${best.name}`
       };
 
-      const msgMap = {
-        de: `Für Ihr Anliegen empfehlen wir das Spezialistenteam der **${best.name}** in ${best.city}.`,
-        en: `For your medical condition, we recommend the specialist team at **${best.name}** in ${best.city}.`,
-        tr: `Şikayetiniz için **${best.name}** (${best.city}) uzman ekibini öneriyoruz.`,
-        uk: `Для вирішення вашого медичного питання рекомендуємо фахівців **${best.name}** у м. ${best.city}.`
-      };
-
       return {
         type: "match",
         title: titleMap[lang] || titleMap.de,
-        message: msgMap[lang] || msgMap.de,
+        message: contextExplanation,
         clinic: trackedClinic,
         additionalMatches: topMatches.slice(1, 3).map(m => ({
           ...m.clinic,
@@ -600,7 +797,9 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 8. Reha vs. Akut (wenn kein spezifischer Standort gematcht wurde)
+    // =========================================================================
+    // 5. ALLGEMEINE REHA VS. AKUT (falls kein Standort direkt gematcht)
+    // =========================================================================
     if (/reha|kur|anschlussheilbehandlung|ahb|rehabilitation/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "match", "reha", "Reha & AHB", isVoice, lang);
       return {
@@ -611,7 +810,9 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 9. Allgemeine Termin- & Sprechstundenanfrage (wenn kein spezifischer Schwerpunkt gematcht wurde)
+    // =========================================================================
+    // 6. ALLGEMEINE TERMINANFRAGE (falls kein Fachbereich gematcht)
+    // =========================================================================
     if (/termin|sprechstunde|vorstellung|anmeldung|beratung|appointment/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Allgemeine Terminanfrage", isVoice, lang);
       return {
@@ -622,18 +823,21 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 10. Fallback
+    // =========================================================================
+    // 7. INTELLIGENTER FALLBACK (Geführter Lotsen-Einstieg)
+    // =========================================================================
     this.analytics.recordQuery(scrubbedInput, "fallback", null, "Unspezifisch", isVoice, lang);
     return {
       type: "fallback",
       title: "Paracelsus Klinik-Wegweiser",
-      message: "Ich konnte Ihre Anfrage keinem direkten Spezialbereich zuordnen. Bitte wählen Sie eines unserer medizinischen Spitzenzentren oder nutzen Sie unseren geführten Symptom-Lotsen:",
+      message: "Ich möchte Ihnen gerne weiterhelfen, konnte Ihre Eingabe jedoch keinem spezifischen Fachbereich zuordnen. Bitte wählen Sie eines unserer medizinischen Spitzenzentren oder grenzen Sie Ihre Beschwerde ein:",
       chips: [
         "Parkinson & Neurologie (Kassel)",
         "Urologie & Prostata (Düsseldorf)",
-        "Gelenke & Orthopädie (Bremen)",
-        "Notfallversorgung (Henstedt-Ulzburg)",
-        "Alle Standorte im Überblick"
+        "Gelenke & Wirbelsäule (Bremen)",
+        "Notaufnahme & Bauch (Henstedt-Ulzburg)",
+        "Rheuma & Schmerztherapie (Langenhagen)",
+        "Aufnahme-Checkliste"
       ]
     };
   }
@@ -646,9 +850,22 @@ if (typeof window !== "undefined") {
   window.scrubPII = scrubPII;
   window.buildMarketingUrl = buildMarketingUrl;
   window.REGION_MAPPING = REGION_MAPPING;
-  window.fuzzyContains = fuzzyContains;
+  window.getLevenshteinDistance = getLevenshteinDistance;
+  window.safeFuzzyMatch = safeFuzzyMatch;
+  window.fuzzyContains = safeFuzzyMatch; // Kompatibilität
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { ParacelsusBotEngine, ParacelsusAnalyticsStore, scrubPII, buildMarketingUrl, createCalendarEventContent, EMERGENCY_CATEGORIES, REGION_MAPPING, fuzzyContains };
+  module.exports = {
+    ParacelsusBotEngine,
+    ParacelsusAnalyticsStore,
+    scrubPII,
+    buildMarketingUrl,
+    createCalendarEventContent,
+    EMERGENCY_CATEGORIES,
+    REGION_MAPPING,
+    getLevenshteinDistance,
+    safeFuzzyMatch,
+    fuzzyContains: safeFuzzyMatch
+  };
 }
