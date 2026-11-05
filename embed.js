@@ -106,13 +106,12 @@
             <br><br>
             <strong>Wobei können wir Ihnen heute helfen?</strong>
             <div class="pc-chips">
-              <button class="pc-chip" onclick="window.handleChipClick('Parkinson & Bewegungsstörungen')">🧠 Parkinson / Neurologie</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Prostata & Urologie')">🔬 Prostata / Urologie</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Gelenke, Knie & Hüfte')">🦴 Orthopädie / Gelenke</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Zentrale Notaufnahme')">🚑 Notaufnahme 24/7</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Checkliste für den Klinikaufenthalt')">📋 Koffer-Packliste</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Zuweiser und Ärzteportal')">🩺 Für Ärzte / Zuweiser</button>
-              <button class="pc-chip" onclick="window.handleChipClick('Karriere und Jobs')">💼 Karriere / Jobs</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Parkinson & Bewegungsstörungen')"><span>🧠</span> Parkinson</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Prostata & Urologie')"><span>🔬</span> Urologie</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Gelenke, Knie & Hüfte')"><span>🦴</span> Orthopädie</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Zentrale Notaufnahme')"><span>🚑</span> Notaufnahme</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Checkliste für den Klinikaufenthalt')"><span>📋</span> Kofferliste</button>
+              <button class="pc-chip" onclick="window.handleChipClick('Zuweiser und Ärzteportal')"><span>🩺</span> Zuweiser</button>
             </div>
           </div>
         </div>
@@ -124,7 +123,7 @@
           <input 
             type="text" 
             id="pcInput" 
-            placeholder="Frage oder Beschwerde eingeben..." 
+            placeholder="Frage oder Thema eingeben..." 
             autocomplete="off"
             aria-label="Suchanfrage eingeben"
           >
@@ -175,13 +174,16 @@
     };
 
     window.toggleChat = function(forceState) {
+      const launcher = document.getElementById("chatLauncher");
       if (typeof forceState === "boolean") {
         if (forceState) chatWindow.classList.remove("closed");
         else chatWindow.classList.add("closed");
       } else {
         chatWindow.classList.toggle("closed");
       }
-      if (!chatWindow.classList.contains("closed")) {
+      const isOpen = !chatWindow.classList.contains("closed");
+      if (launcher) launcher.classList.toggle("chat-open", isOpen);
+      if (isOpen) {
         setTimeout(() => chatInput && chatInput.focus(), 250);
       }
     };

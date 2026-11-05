@@ -374,13 +374,12 @@
         <br><br>
         <strong>Wobei können wir Ihnen heute helfen?</strong>
         <div class="pc-chips">
-          <button class="pc-chip" onclick="handleChipClick('Parkinson & Bewegungsstörungen')">🧠 Parkinson / Neurologie</button>
-          <button class="pc-chip" onclick="handleChipClick('Prostata & Urologie')">🔬 Prostata / Urologie</button>
-          <button class="pc-chip" onclick="handleChipClick('Gelenke, Knie & Hüfte')">🦴 Orthopädie / Gelenke</button>
-          <button class="pc-chip" onclick="handleChipClick('Zentrale Notaufnahme')">🚑 Notaufnahme 24/7</button>
-          <button class="pc-chip" onclick="handleChipClick('Checkliste für den Klinikaufenthalt')">📋 Koffer-Packliste</button>
-          <button class="pc-chip" onclick="handleChipClick('Zuweiser und Ärzteportal')">🩺 Für Ärzte / Zuweiser</button>
-          <button class="pc-chip" onclick="handleChipClick('Karriere und Jobs')">💼 Karriere / Jobs</button>
+          <button class="pc-chip" onclick="handleChipClick('Parkinson & Bewegungsstörungen')"><span>🧠</span> Parkinson</button>
+          <button class="pc-chip" onclick="handleChipClick('Prostata & Urologie')"><span>🔬</span> Urologie</button>
+          <button class="pc-chip" onclick="handleChipClick('Gelenke, Knie & Hüfte')"><span>🦴</span> Orthopädie</button>
+          <button class="pc-chip" onclick="handleChipClick('Zentrale Notaufnahme')"><span>🚑</span> Notaufnahme</button>
+          <button class="pc-chip" onclick="handleChipClick('Checkliste für den Klinikaufenthalt')"><span>📋</span> Kofferliste</button>
+          <button class="pc-chip" onclick="handleChipClick('Zuweiser und Ärzteportal')"><span>🩺</span> Zuweiser</button>
         </div>
       </div>
     </div>
@@ -393,7 +392,7 @@
       <input 
         type="text" 
         id="pcInput" 
-        placeholder="Frage oder Beschwerde eingeben..." 
+        placeholder="Frage oder Thema eingeben..." 
         autocomplete="off"
         aria-label="Suchanfrage eingeben"
       >
@@ -584,6 +583,7 @@
     }
 
     function toggleChat(forceState) {
+      const launcher = document.getElementById("chatLauncher");
       if (typeof forceState === "boolean") {
         if (forceState) chatWindow.classList.remove("closed");
         else chatWindow.classList.add("closed");
@@ -591,7 +591,10 @@
         chatWindow.classList.toggle("closed");
       }
 
-      if (!chatWindow.classList.contains("closed")) {
+      const isOpen = !chatWindow.classList.contains("closed");
+      if (launcher) launcher.classList.toggle("chat-open", isOpen);
+
+      if (isOpen) {
         setTimeout(() => chatInput.focus(), 250);
       }
     }

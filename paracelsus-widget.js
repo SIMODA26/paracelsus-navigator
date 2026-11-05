@@ -97,13 +97,12 @@
           <br><br>
           <strong>Wobei dürfen wir Ihnen behilflich sein?</strong>
           <div class="pc-chips">
-            <button class="pc-chip" data-query="Parkinson & Bewegungsstörungen">🧠 Parkinson / Neurologie</button>
-            <button class="pc-chip" data-query="Prostata & Urologie">🔬 Prostata / Urologie</button>
-            <button class="pc-chip" data-query="Gelenke, Knie & Hüfte">🦴 Orthopädie / Gelenke</button>
-            <button class="pc-chip" data-query="Zentrale Notaufnahme">🚑 Notaufnahme 24/7</button>
-            <button class="pc-chip" data-query="Checkliste für die Aufnahme">📋 Koffer-Packliste</button>
-            <button class="pc-chip" data-query="Zuweiser und Ärzteportal">🩺 Für Ärzte / Zuweiser</button>
-            <button class="pc-chip" data-query="Karriere und Jobs">💼 Karriere / Jobs</button>
+            <button class="pc-chip" data-query="Parkinson & Bewegungsstörungen"><span>🧠</span> Parkinson</button>
+            <button class="pc-chip" data-query="Prostata & Urologie"><span>🔬</span> Urologie</button>
+            <button class="pc-chip" data-query="Gelenke, Knie & Hüfte"><span>🦴</span> Orthopädie</button>
+            <button class="pc-chip" data-query="Zentrale Notaufnahme"><span>🚑</span> Notaufnahme</button>
+            <button class="pc-chip" data-query="Checkliste für die Aufnahme"><span>📋</span> Kofferliste</button>
+            <button class="pc-chip" data-query="Zuweiser und Ärzteportal"><span>🩺</span> Zuweiser</button>
           </div>
         </div>
       </div>
@@ -115,7 +114,7 @@
         <input 
           type="text" 
           id="pcDrawerInput" 
-          placeholder="Frage oder Beschwerde eingeben..." 
+          placeholder="Frage oder Thema eingeben..." 
           autocomplete="off"
           aria-label="Suchanfrage eingeben"
         >
@@ -216,7 +215,9 @@
       } else {
         drawer.classList.toggle("closed");
       }
-      if (!drawer.classList.contains("closed")) {
+      const isOpen = !drawer.classList.contains("closed");
+      launcher.classList.toggle("chat-open", isOpen);
+      if (isOpen) {
         setTimeout(() => input.focus(), 250);
       }
     }
