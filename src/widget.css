@@ -2232,3 +2232,60 @@ a:focus-visible {
   outline: 2px solid var(--tuerkis) !important;
   outline-offset: 2px !important;
 }
+
+/* ==========================================================================
+   Modern Web Guidance: Accessibility & Preferences (WCAG / BITV 2.0)
+   ========================================================================== */
+
+/* Canonical visually-hidden utility for screen-reader text */
+.visually-hidden:where(:not(:focus-within, :active)) {
+  position: absolute !important;
+  clip-path: inset(50%) !important;
+  overflow: hidden !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  white-space: nowrap !important;
+}
+
+/* Skip Link focus state */
+.skip-link:focus,
+.skip-link:focus-visible {
+  position: fixed !important;
+  top: 14px;
+  left: 14px;
+  z-index: 100000;
+  width: auto !important;
+  height: auto !important;
+  clip-path: none !important;
+  overflow: visible !important;
+  padding: 10px 18px !important;
+  background: var(--gruen);
+  color: var(--weiss) !important;
+  border: 2px solid var(--tuerkis);
+  border-radius: 8px;
+  font-family: var(--font-brand);
+  font-weight: 700;
+  font-size: 14px;
+  text-decoration: none;
+  box-shadow: 0 8px 24px rgba(18, 62, 64, 0.4);
+}
+
+/* Reduced motion preference */
+@media (prefers-reduced-motion: reduce) {
+  .pc-brand-p::before {
+    animation: none !important;
+  }
+  .paracelsus-chat-window,
+  .paracelsus-chat-launcher,
+  .pc-chip,
+  .pc-send-btn,
+  .pc-close-btn,
+  .pc-dock-btn,
+  .showcase-bar {
+    transition: none !important;
+    animation: none !important;
+  }
+}

@@ -37,7 +37,7 @@
     root.id = "paracelsus-navigator-root";
     root.innerHTML = `
       <!-- Launcher Button -->
-      <button class="paracelsus-chat-launcher" id="chatLauncher" onclick="window.toggleChat()" aria-label="Wegweiser öffnen">
+      <button class="paracelsus-chat-launcher" id="chatLauncher" onclick="window.toggleChat()" aria-label="Wegweiser öffnen" aria-expanded="false" aria-controls="chatWindow">
         <div class="launcher-icon-wrap">
           <img src="${BASE_URL}/assets/bildmarke_p.png" alt="Paracelsus P">
         </div>
@@ -48,7 +48,7 @@
       </button>
 
       <!-- Chat Window Drawer (Frosted Glass Popup) -->
-      <div class="paracelsus-chat-window closed" id="chatWindow" role="dialog" aria-modal="true" aria-labelledby="chatHeaderTitle">
+      <div class="paracelsus-chat-window closed" id="chatWindow" role="dialog" aria-modal="false" aria-labelledby="chatHeaderTitle" aria-hidden="true">
         <div class="pc-header">
           <div class="pc-header-brand">
             <div class="pc-brand-p">
@@ -117,6 +117,7 @@
         </div>
 
         <form class="pc-input-bar" id="pcForm" onsubmit="window.handleFormSubmit(event)">
+          <label for="pcInput" class="visually-hidden">Ihre Frage an den Paracelsus Wegweiser</label>
           <button type="button" class="pc-dock-btn" onclick="window.handleChipClick('Checkliste für den Klinikaufenthalt')" title="Aufnahme-Packliste öffnen" aria-label="Packliste">
             <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 6.5l-8.5 8.5a3 3 0 004.24 4.24l9.19-9.19a4.5 4.5 0 00-6.36-6.36l-9.2 9.19a6 6 0 008.49 8.49l8.48-8.49"/></svg>
           </button>
@@ -125,6 +126,9 @@
             id="pcInput" 
             placeholder="Frage oder Thema eingeben..." 
             autocomplete="off"
+            autocorrect="off"
+            autocapitalize="sentences"
+            enterkeyhint="send"
             aria-label="Suchanfrage eingeben"
           >
           <button type="submit" class="pc-send-btn" aria-label="Senden">
@@ -182,11 +186,25 @@
         chatWindow.classList.toggle("closed");
       }
       const isOpen = !chatWindow.classList.contains("closed");
-      if (launcher) launcher.classList.toggle("chat-open", isOpen);
+      if (launcher) {
+        launcher.classList.toggle("chat-open", isOpen);
+        launcher.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      }
+      chatWindow.setAttribute("aria-hidden", isOpen ? "false" : "true");
       if (isOpen) {
         setTimeout(() => chatInput && chatInput.focus(), 250);
       }
     };
+
+    if (chatInput) {
+      chatInput.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          if (event.isComposing || event.keyCode === 229) {
+            return;
+          }
+        }
+      });
+    }
 
     window.printChecklist = function() {
       window.print();

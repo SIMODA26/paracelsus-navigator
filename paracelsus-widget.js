@@ -29,7 +29,7 @@
   const widgetHtml = `
   <div id="paracelsusWidgetRoot">
     <!-- Floating Launcher Button -->
-    <button class="paracelsus-chat-launcher" id="pcLauncherBtn" aria-label="Klinik-Wegweiser öffnen">
+    <button class="paracelsus-chat-launcher" id="pcLauncherBtn" aria-label="Klinik-Wegweiser öffnen" aria-expanded="false" aria-controls="pcChatDrawer">
       <div class="launcher-icon-wrap">
         <img src="${baseUrl}/assets/bildmarke_p.png" alt="Paracelsus">
       </div>
@@ -40,7 +40,7 @@
     </button>
 
     <!-- Chat Drawer Window -->
-    <div class="paracelsus-chat-window closed" id="pcChatDrawer" role="dialog" aria-modal="true" aria-labelledby="pcHeaderTitle">
+    <div class="paracelsus-chat-window closed" id="pcChatDrawer" role="dialog" aria-modal="false" aria-labelledby="pcHeaderTitle" aria-hidden="true">
       <div class="pc-header">
         <div class="pc-header-brand">
           <div class="pc-brand-p">
@@ -108,6 +108,7 @@
       </div>
 
       <form class="pc-input-bar" id="pcDrawerForm">
+        <label for="pcDrawerInput" class="visually-hidden">Ihre Frage an den Paracelsus Wegweiser</label>
         <button type="button" class="pc-dock-btn" id="pcPacklisteDockBtn" title="Koffer-Packliste anzeigen" aria-label="Packliste">
           <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M16.5 6.5l-8.5 8.5a3 3 0 004.24 4.24l9.19-9.19a4.5 4.5 0 00-6.36-6.36l-9.2 9.19a6 6 0 008.49 8.49l8.48-8.49"/></svg>
         </button>
@@ -116,6 +117,9 @@
           id="pcDrawerInput" 
           placeholder="Frage oder Thema eingeben..." 
           autocomplete="off"
+          autocorrect="off"
+          autocapitalize="sentences"
+          enterkeyhint="send"
           aria-label="Suchanfrage eingeben"
         >
         <button type="button" class="pc-dock-btn pc-voice-btn" id="pcVoiceBtn" title="Spracheingabe starten" aria-label="Spracheingabe starten">
@@ -217,10 +221,21 @@
       }
       const isOpen = !drawer.classList.contains("closed");
       launcher.classList.toggle("chat-open", isOpen);
+      launcher.setAttribute("aria-expanded", isOpen ? "true" : "false");
+      drawer.setAttribute("aria-hidden", isOpen ? "false" : "true");
       if (isOpen) {
         setTimeout(() => input.focus(), 250);
       }
     }
+
+    // Modern Web Guidance: IME-safe enter-to-submit check (prevents premature submit during character conversion)
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        if (event.isComposing || event.keyCode === 229) {
+          return;
+        }
+      }
+    });
 
     launcher.addEventListener("click", () => toggleChat());
     closeBtn.addEventListener("click", () => toggleChat(false));
