@@ -1322,6 +1322,88 @@ strong, b, .bold {
 }
 
 /* ==========================================================================
+   Kalender-Export & Termin-Merken (.ics)
+   ========================================================================== */
+.pc-cal-btn {
+  background: var(--weiss);
+  border: 1px solid rgba(18, 62, 64, 0.2);
+  color: var(--gruen);
+  font-family: var(--font-brand);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 5px 11px;
+  border-radius: var(--radius-pille);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  transition: all 0.2s var(--ease-edel);
+}
+
+.pc-cal-btn:hover {
+  background: var(--beige-hell);
+  border-color: var(--salbei);
+  color: var(--gruen);
+}
+
+/* ==========================================================================
+   Dezentes Patienten-Feedback (Ja / Mäßig / Nein)
+   ========================================================================== */
+.pc-feedback-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(18, 62, 64, 0.1);
+  font-size: 11px;
+  color: #6f8585;
+}
+
+.pc-feedback-bar span {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.pc-feedback-btn {
+  background: none;
+  border: none;
+  color: var(--gruen);
+  font-family: var(--font-brand);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 5px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+  text-decoration: underline;
+  text-decoration-color: rgba(18, 62, 64, 0.25);
+  text-underline-offset: 2px;
+}
+
+.pc-feedback-btn:hover {
+  background: rgba(149, 200, 186, 0.25);
+  color: var(--gruen);
+  text-decoration-color: var(--gruen);
+}
+
+.pc-feedback-thanks {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--salbei);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(2px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
    Mobile & Responsive Optimierung (Perfekt für Smartphone & Tablet)
    ========================================================================== */
 @media (max-width: 768px) {

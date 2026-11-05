@@ -246,6 +246,14 @@
           <div class="stat-label">Generierte Klicks</div>
         </div>
         <div class="stat-box">
+          <div class="stat-number" style="color: var(--gruen);" id="mCalendarDownloads">0</div>
+          <div class="stat-label">📅 Kalender-Merker</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-number" style="color: var(--tuerkis-dunkel);" id="mFeedbackStats">0%</div>
+          <div class="stat-label">👍 Feedback (Ja / Mäßig / Nein)</div>
+        </div>
+        <div class="stat-box">
           <div class="stat-number" id="mGapsCount">0</div>
           <div class="stat-label">Erkannte Content-Gaps</div>
         </div>
@@ -441,6 +449,45 @@
       window.speechSynthesis.speak(utterance);
     }
 
+    function getFeedbackBarHtml() {
+      return `
+        <div class="pc-feedback-bar">
+          <span>War das hilfreich?</span>
+          <button type="button" class="pc-feedback-btn" onclick="sendFeedback(this, 'ja')">Ja</button>
+          <span>&bull;</span>
+          <button type="button" class="pc-feedback-btn" onclick="sendFeedback(this, 'maessig')">Mäßig</button>
+          <span>&bull;</span>
+          <button type="button" class="pc-feedback-btn" onclick="sendFeedback(this, 'nein')">Nein</button>
+        </div>
+      `;
+    }
+
+    function sendFeedback(btn, rating) {
+      engine.analytics.recordFeedback(rating);
+      const bar = btn.closest(".pc-feedback-bar");
+      if (bar) {
+        bar.innerHTML = `<span class="pc-feedback-thanks">✓ Vielen Dank für Ihre Rückmeldung!</span>`;
+      }
+    }
+
+    function downloadClinicCalendar(clinicId) {
+      const standorte = window.PARACELSUS_STANDORTE || [];
+      const clinic = standorte.find(c => c.id === clinicId);
+      if (!clinic) return;
+      const ics = createCalendarEventContent(clinic);
+      if (!ics) return;
+      engine.analytics.recordCalendarDownload();
+      const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `paracelsus-${clinic.id}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
     function appendBotResponse(res) {
       const msg = document.createElement("div");
 
@@ -472,6 +519,7 @@
           });
           html += `</div>`;
         }
+        html += getFeedbackBarHtml();
         msg.innerHTML = html;
         messagesArea.appendChild(msg);
         scrollToBottom();
@@ -503,6 +551,7 @@
           });
           html += `</div>`;
         }
+        html += getFeedbackBarHtml();
         msg.innerHTML = html;
         messagesArea.appendChild(msg);
         scrollToBottom();
@@ -545,6 +594,7 @@
           });
           html += `</div>`;
         }
+        html += getFeedbackBarHtml();
         msg.innerHTML = html;
         messagesArea.appendChild(msg);
         scrollToBottom();
@@ -567,6 +617,7 @@
             </ul>
             <div class="pc-clinic-actions">
               <a href="${res.clinic.url}" target="_blank" class="pc-btn-primary" onclick="engine.analytics.recordClick('clinic_url', '${res.clinic.id}')">Klinikseite & Termin &rarr;</a>
+              <button type="button" class="pc-cal-btn" onclick="downloadClinicCalendar('${res.clinic.id}')" title="Termin im Smartphone-Kalender vormerken">📅 Im Kalender merken</button>
               <a href="tel:${res.clinic.phone}" class="pc-phone-label" onclick="engine.analytics.recordClick('phone', '${res.clinic.id}')">📞 ${res.clinic.phone}</a>
               ${res.clinic.mapsUrl ? `<a href="${res.clinic.mapsUrl}" target="_blank" class="pc-maps-link" onclick="engine.analytics.recordClick('maps', '${res.clinic.id}')">🗺️ Anfahrt</a>` : ""}
             </div>
@@ -591,6 +642,8 @@
         });
         html += `</div>`;
       }
+
+      html += getFeedbackBarHtml();
 
       msg.innerHTML = html;
       messagesArea.appendChild(msg);
@@ -676,6 +729,13 @@
       document.getElementById("mTotalQueries").innerText = metrics.totalQueries;
       document.getElementById("mEmergencyAlerts").innerText = metrics.emergencyAlerts;
       document.getElementById("mLinkClicks").innerText = metrics.linkClicks;
+      document.getElementById("mCalendarDownloads").innerText = metrics.calendarDownloads || 0;
+
+      const fb = metrics.feedback || { ja: 0, maessig: 0, nein: 0 };
+      const fbTotal = (fb.ja || 0) + (fb.maessig || 0) + (fb.nein || 0);
+      const posPct = fbTotal > 0 ? Math.round(((fb.ja || 0) / fbTotal) * 100) : 100;
+      document.getElementById("mFeedbackStats").innerHTML = `<span style="font-size: 18px; font-weight: 800;">${posPct}%</span> <span style="font-size: 11px; color: #555;">(${fb.ja || 0}👍 / ${fb.maessig || 0}😐 / ${fb.nein || 0}👎)</span>`;
+
       document.getElementById("mGapsCount").innerText = (metrics.contentGaps || []).length;
 
       // Standorte rendern

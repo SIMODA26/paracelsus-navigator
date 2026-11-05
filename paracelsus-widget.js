@@ -195,8 +195,63 @@
       if (chip && chip.dataset.query) {
         input.value = chip.dataset.query;
         handleSend();
+        return;
+      }
+
+      const calBtn = e.target.closest(".pc-cal-btn");
+      if (calBtn && calBtn.dataset.clinicId) {
+        downloadCalendar(calBtn.dataset.clinicId);
+        return;
+      }
+
+      const fbBtn = e.target.closest(".pc-feedback-btn");
+      if (fbBtn && fbBtn.dataset.rating) {
+        if (engine.analytics && engine.analytics.recordFeedback) {
+          engine.analytics.recordFeedback(fbBtn.dataset.rating);
+        }
+        const bar = fbBtn.closest(".pc-feedback-bar");
+        if (bar) {
+          bar.innerHTML = '<span class="pc-feedback-thanks">✓ Vielen Dank für Ihre Rückmeldung!</span>';
+        }
       }
     });
+
+    function downloadCalendar(clinicId) {
+      const standorte = window.PARACELSUS_STANDORTE || [];
+      const clinic = standorte.find(c => c.id === clinicId);
+      if (!clinic) return;
+      const getIcs = (typeof createCalendarEventContent === "function") 
+        ? createCalendarEventContent 
+        : (window.createCalendarEventContent || null);
+      if (!getIcs) return;
+      const ics = getIcs(clinic);
+      if (!ics) return;
+      if (engine.analytics && engine.analytics.recordCalendarDownload) {
+        engine.analytics.recordCalendarDownload();
+      }
+      const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `paracelsus-${clinic.id}.ics`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+
+    function getFeedbackBarHtml() {
+      return `
+        <div class="pc-feedback-bar">
+          <span>War das hilfreich?</span>
+          <button type="button" class="pc-feedback-btn" data-rating="ja">Ja</button>
+          <span>&bull;</span>
+          <button type="button" class="pc-feedback-btn" data-rating="maessig">Mäßig</button>
+          <span>&bull;</span>
+          <button type="button" class="pc-feedback-btn" data-rating="nein">Nein</button>
+        </div>
+      `;
+    }
 
     let recognition = null;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -278,6 +333,7 @@
           });
           html += `</div>`;
         }
+        html += getFeedbackBarHtml();
         appendMsg(html, "bot", "unsupported-box");
         return;
       }
@@ -305,6 +361,7 @@
           });
           html += `</div>`;
         }
+        html += getFeedbackBarHtml();
         appendMsg(html, "bot");
         return;
       }
@@ -322,6 +379,7 @@
           });
           html += `</div>`;
         }
+        html += getFeedbackBarHtml();
         appendMsg(html, "bot");
         return;
       }
@@ -340,6 +398,7 @@
             </ul>
             <div class="pc-clinic-actions">
               <a href="${res.clinic.url}" target="_blank" class="pc-btn-primary">Klinikseite & Termin &rarr;</a>
+              <button type="button" class="pc-cal-btn" data-clinic-id="${res.clinic.id}">📅 Im Kalender merken</button>
               <a href="tel:${res.clinic.phone}" class="pc-phone-label">📞 ${res.clinic.phone}</a>
               ${res.clinic.mapsUrl ? `<a href="${res.clinic.mapsUrl}" target="_blank" class="pc-maps-link" title="Route in Google Maps">🗺️ Route</a>` : ""}
             </div>
@@ -362,6 +421,8 @@
         });
         html += `</div>`;
       }
+
+      html += getFeedbackBarHtml();
 
       appendMsg(html, "bot");
     }

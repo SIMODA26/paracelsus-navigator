@@ -1,14 +1,14 @@
 /**
  * Paracelsus Kliniken — Digitaler Wegweiser & Clinical Triage Engine
- * Version: 3.5.0 (Enterprise Multi-Lingual, Accessibility & Clinical Decision Trees)
+ * Version: 3.6.0 (Enterprise Multi-Lingual, Accessibility, ICS Calendar & Subtle Feedback)
  * 
  * Compliance & Standards:
  * - MDR (EU 2017/745): Reines Orientierungs- und Navigationssystem (keine Diagnostik / Therapie)
  * - DSGVO Art. 9: Strikte Client-Side PII-Anonymisierung sensibler Gesundheitsdaten
- * - BITV 2.0 / WCAG 2.1 AAA: Barrierefreiheit, Text-to-Speech & Senioren-Modus
+ * - Keine Zweiklassengesellschaft: Gleichbehandlung aller Patienten
  */
 
-// 1. Detaillierter Notfallkatalog mit differenzierten Notruf- und Krisenkontakten
+// 1. Detaillierter Notfallkatalog
 const EMERGENCY_CATEGORIES = {
   CARDIOVASCULAR: {
     pattern: /herzinfarkt|brustschmerz|engegefühl\s*brust|druck\s*auf\s*der\s*brust|ausstrahlung\s*(linker\s*arm|kiefer)|herzrasen\s*akut|heart\s*attack|chest\s*pain/i,
@@ -91,7 +91,7 @@ const EMERGENCY_CATEGORIES = {
   }
 };
 
-// 2. Nicht angebotene Fachdisziplinen (Klares Negativ-Routing)
+// 2. Nicht angebotene Fachdisziplinen
 const UNSUPPORTED_DISCIPLINES = [
   {
     pattern: /geburt|entbindung|kreißsaal|schwanger|wehen|baby\s*bekommen|wöchnerin|birth|maternity/i,
@@ -129,21 +129,16 @@ const UNSUPPORTED_DISCIPLINES = [
 function scrubPII(text) {
   if (!text) return "";
   let clean = text;
-  // 1. Versichertennummer ZUERST
   clean = clean.replace(/\b[A-Za-z]\d{9}\b/g, "[VERSICHERTEN-NR ANONYMISIERT]");
-  // 2. Telefonnummern & Handynummern
   clean = clean.replace(/(\+?\d{1,3}[-.\s]?)?\(?\d{2,5}\)?[-.\s]?\d{3,9}/g, "[TELEFON ANONYMISIERT]");
-  // 3. E-Mails
   clean = clean.replace(/[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+/g, "[E-MAIL ANONYMISIERT]");
-  // 4. Namen (gezielt bis zu 2 Wörter nach Einleitung, inkl. optionaler Titel)
   clean = clean.replace(/(?:ich heiße|mein name ist|patient:?)\s+(?:dr\.?\s+)?[a-zäöüß]+(?:\s+[a-zäöüß]+)?/gi, "[NAME ANONYMISIERT]");
   clean = clean.replace(/(?:herr|frau)\s+(?:dr\.?\s+)?[a-zäöüß]+(?:\s+[a-zäöüß]+)?/gi, "[NAME ANONYMISIERT]");
-  // 5. Geburtsdaten
   clean = clean.replace(/\b\d{1,2}\.\d{1,2}\.\d{2,4}\b/g, "[DATUM ANONYMISIERT]");
   return clean;
 }
 
-// 4. UTM-Link-Generator für Kampagnen-Tracking
+// 4. UTM-Link-Generator
 function buildMarketingUrl(baseUrl, clinicId, intent) {
   if (!baseUrl) return "#";
   try {
@@ -160,10 +155,42 @@ function buildMarketingUrl(baseUrl, clinicId, intent) {
   }
 }
 
-// 5. DSGVO-konformer Analytics-Store (Lokale Zähler ohne Personenbezug)
+// 5. Kalender-Export (.ics iCalendar Generator für das Smartphone)
+function createCalendarEventContent(clinic) {
+  if (!clinic) return null;
+  const now = new Date();
+  const start = new Date(now.getTime() + 24 * 60 * 60 * 1000); // Morgen
+  start.setHours(9, 0, 0, 0);
+  const end = new Date(start.getTime() + 60 * 60 * 1000); // 1 Stunde
+
+  function formatDate(d) {
+    return d.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
+  }
+
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Paracelsus Kliniken//Digitaler Wegweiser//DE",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VEVENT",
+    `SUMMARY:Paracelsus Klinik ${clinic.city} - Kontakt / Sprechstunde`,
+    `DESCRIPTION:Klinik: ${clinic.name}\\nTelefon Sekretariat: ${clinic.phone}\\nAdresse: ${clinic.address || clinic.city}\\nWebsite: ${clinic.url}\\n\\nBitte mitbringen: Versichertenkarte, Einweisungsschein, Medikamentenplan.`,
+    `LOCATION:${clinic.address || clinic.city}`,
+    `DTSTART:${formatDate(start)}`,
+    `DTEND:${formatDate(end)}`,
+    "STATUS:CONFIRMED",
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ].join("\r\n");
+
+  return ics;
+}
+
+// 6. DSGVO-konformer Analytics-Store mit dezentem Feedback
 class ParacelsusAnalyticsStore {
   constructor() {
-    this.storageKey = "paracelsus_analytics_v3";
+    this.storageKey = "paracelsus_analytics_v4";
     this.data = this.load();
   }
 
@@ -179,6 +206,8 @@ class ParacelsusAnalyticsStore {
       clinicRoutingCounts: {},
       contentGaps: [],
       linkClicks: 0,
+      calendarDownloads: 0,
+      feedback: { ja: 0, maessig: 0, nein: 0 },
       voiceQueries: 0,
       zuweiserQueries: 0,
       languageCounts: { de: 0, en: 0, tr: 0, uk: 0 }
@@ -219,6 +248,18 @@ class ParacelsusAnalyticsStore {
     this.save();
   }
 
+  recordFeedback(rating) {
+    if (["ja", "maessig", "nein"].includes(rating)) {
+      this.data.feedback[rating] = (this.data.feedback[rating] || 0) + 1;
+      this.save();
+    }
+  }
+
+  recordCalendarDownload() {
+    this.data.calendarDownloads = (this.data.calendarDownloads || 0) + 1;
+    this.save();
+  }
+
   recordClick(type, label) {
     this.data.linkClicks++;
     this.save();
@@ -234,7 +275,7 @@ class ParacelsusAnalyticsStore {
   }
 }
 
-// 6. Haupt-Bot-Engine
+// 7. Haupt-Bot-Engine
 class ParacelsusBotEngine {
   constructor(standorteData) {
     this.standorte = standorteData || [];
@@ -264,7 +305,7 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 1. Notfall-Prüfung (Höchste Priorität)
+    // 1. Notfall-Prüfung
     for (const [key, em] of Object.entries(EMERGENCY_CATEGORIES)) {
       if (em.pattern.test(query)) {
         this.analytics.recordQuery(scrubbedInput, "emergency", null, `Notfall: ${key}`, isVoice, lang);
@@ -304,7 +345,7 @@ class ParacelsusBotEngine {
       }
     }
 
-    // 3. Zuweiser & Ärzte-Portal (Niedergelassene Haus- & Fachärzte)
+    // 3. Zuweiser & Ärzte-Portal
     if (/zuweiser|arztportal|ärztliche\s*einweisung|kollegialer\s*kontakt|chefarztsekretariat|befundübermittlung|patient[a-z]*\s*einweisen|patient[a-z]*\s*überweisen|niedergelassene[a-z]*|facharzt|hausarzt/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Zuweiser & Ärzte", isVoice, lang);
       return {
@@ -321,7 +362,7 @@ class ParacelsusBotEngine {
       };
     }
 
-    // 4. Aufnahme & Koffer-Checkliste (Exklusive Notaufnahme)
+    // 4. Aufnahme & Koffer-Checkliste
     if (!/notaufnahme/i.test(query) && /koffer|mitbringen|unterlagen|stationäre\s*aufnahme|checkliste|einweisung|was\s*brauche\s*ich|packing\s*list/i.test(query)) {
       this.analytics.recordQuery(scrubbedInput, "info", null, "Aufnahme-Checkliste", isVoice, lang);
       return {
@@ -402,29 +443,22 @@ class ParacelsusBotEngine {
       let score = 0;
       const matchedTerms = [];
 
-      // Stadt-Match
       if (query.includes(clinic.city.toLowerCase())) {
         score += 15;
         matchedTerms.push(clinic.city);
       }
-      // Bundesland-Match
       if (query.includes(clinic.state.toLowerCase())) {
         score += 8;
       }
-      // ID-Match
       if (query.includes(clinic.id.split("-")[0])) {
         score += 10;
       }
-
-      // Keyword- & Indikations-Match
       clinic.keywords.forEach(keyword => {
         if (query.includes(keyword.toLowerCase())) {
           score += 7;
           matchedTerms.push(keyword);
         }
       });
-
-      // Specialties-Match
       clinic.specialties.forEach(spec => {
         if (query.includes(spec.toLowerCase())) {
           score += 9;
@@ -442,7 +476,8 @@ class ParacelsusBotEngine {
       const best = topMatches[0].clinic;
       const trackedClinic = {
         ...best,
-        url: buildMarketingUrl(best.url, best.id, topMatches[0].matchedTerms.join("_"))
+        url: buildMarketingUrl(best.url, best.id, topMatches[0].matchedTerms.join("_")),
+        icsContent: createCalendarEventContent(best)
       };
 
       this.analytics.recordQuery(scrubbedInput, "match", best.id, best.type, isVoice, lang);
@@ -468,13 +503,14 @@ class ParacelsusBotEngine {
         clinic: trackedClinic,
         additionalMatches: topMatches.slice(1, 3).map(m => ({
           ...m.clinic,
-          url: buildMarketingUrl(m.clinic.url, m.clinic.id, "secondary_match")
+          url: buildMarketingUrl(m.clinic.url, m.clinic.id, "secondary_match"),
+          icsContent: createCalendarEventContent(m.clinic)
         })),
         chips: ["Checkliste Aufnahme", "Route & Anfahrt", "Klinikseite öffnen", "Anderer Standort"]
       };
     }
 
-    // 10. Fallback & Content-Gap Aufzeichnung
+    // 10. Fallback
     this.analytics.recordQuery(scrubbedInput, "fallback", null, "Unspezifisch", isVoice, lang);
     return {
       type: "fallback",
@@ -491,6 +527,14 @@ class ParacelsusBotEngine {
   }
 }
 
+if (typeof window !== "undefined") {
+  window.ParacelsusBotEngine = ParacelsusBotEngine;
+  window.ParacelsusAnalyticsStore = ParacelsusAnalyticsStore;
+  window.createCalendarEventContent = createCalendarEventContent;
+  window.scrubPII = scrubPII;
+  window.buildMarketingUrl = buildMarketingUrl;
+}
+
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { ParacelsusBotEngine, ParacelsusAnalyticsStore, scrubPII, buildMarketingUrl, EMERGENCY_CATEGORIES };
+  module.exports = { ParacelsusBotEngine, ParacelsusAnalyticsStore, scrubPII, buildMarketingUrl, createCalendarEventContent, EMERGENCY_CATEGORIES };
 }

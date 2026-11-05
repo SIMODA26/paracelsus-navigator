@@ -4,7 +4,7 @@
  */
 
 const assert = require("assert");
-const { ParacelsusBotEngine, scrubPII, buildMarketingUrl, EMERGENCY_CATEGORIES } = require("./src/bot-engine.js");
+const { ParacelsusBotEngine, scrubPII, buildMarketingUrl, createCalendarEventContent, EMERGENCY_CATEGORIES } = require("./src/bot-engine.js");
 const standorteData = require("./data/standorte.json");
 
 console.log("=================================================");
@@ -167,6 +167,36 @@ runTest("Marketing: UTM Builder creates compliant query params", () => {
   assert(url.includes("utm_source=paracelsus_wegweiser"));
   assert(url.includes("utm_medium=chatbot"));
   assert(url.includes("utm_campaign=routing_duesseldorf-golzheim"));
+});
+
+// 9. CALENDAR ICS EVENT GENERATION
+runTest("Calendar: Generates valid iCalendar (.ics) string with clinic details", () => {
+  const duesseldorf = standorteData.find(c => c.id === "duesseldorf-golzheim");
+  assert(duesseldorf, "Clinic not found");
+  const ics = createCalendarEventContent(duesseldorf);
+  assert(ics.includes("BEGIN:VCALENDAR"), "VCALENDAR header missing");
+  assert(ics.includes("END:VCALENDAR"), "VCALENDAR footer missing");
+  assert(ics.includes("BEGIN:VEVENT"), "VEVENT missing");
+  assert(ics.includes("SUMMARY:Paracelsus Klinik Düsseldorf"), "Summary title incorrect");
+  assert(ics.includes("LOCATION:"), "Location missing");
+  assert(ics.includes(duesseldorf.phone), "Phone contact missing in calendar event");
+});
+
+// 10. SUBTLE FEEDBACK & CONVERSION METRICS
+runTest("Analytics: Records discreet feedback (Ja, Mäßig, Nein) and calendar downloads", () => {
+  const analytics = engine.analytics;
+  const initialJa = analytics.data.feedback.ja || 0;
+  const initialDownloads = analytics.data.calendarDownloads || 0;
+
+  analytics.recordFeedback("ja");
+  analytics.recordFeedback("maessig");
+  analytics.recordFeedback("nein");
+  analytics.recordCalendarDownload();
+
+  assert.strictEqual(analytics.data.feedback.ja, initialJa + 1);
+  assert.strictEqual(analytics.data.feedback.maessig, 1);
+  assert.strictEqual(analytics.data.feedback.nein, 1);
+  assert.strictEqual(analytics.data.calendarDownloads, initialDownloads + 1);
 });
 
 console.log("=================================================");
