@@ -1,4 +1,4 @@
-@import url("tokens.css");
+@import url("tokens.css?v=20261106_round");
 
 /* ==========================================================================
    Paracelsus Kliniken — Corporate Web Design System & Navigator Widget
@@ -139,6 +139,16 @@
 }
 
 :root {
+  /* Paracelsus Corporate Design Farbpalette */
+  --pc-lebensgruen: #123e40;       /* Primärfarbe, Text, Fokus, Buttons */
+  --pc-aktivtuerkis: #95c8ba;      /* Brand-Glow, Highlights, feine Akzentlinien */
+  --pc-petrol-tief: #073136;       /* Tiefe, dunkle Kontraste, Schattenbasis */
+  --pc-salbeigruen: #3f6f6b;       /* Subtile Beschriftungen, Metadaten, Rahmen */
+  --pc-salbei-label: #4c6e6c;      /* Sekundäre Labels, Untertitel */
+  --pc-balancebeige: #cdc9c1;      /* Weiche Nuancen, neutrale Trenner */
+  --pc-reinweiss: #ffffff;         /* Kapseln, Inhaltsblöcke mit starkem Lesekontrast */
+  --pc-rot-notruf: #d32f2f;        /* Notfall-Indikator, 112 Badge */
+
   --gruen: #123e40;       /* Paracelsus Lebensgrün */
   --petrol: #073136;      /* Paracelsus Petrol tief */
   --tuerkis: #95c8ba;     /* Paracelsus Aktivtürkis */
@@ -150,9 +160,54 @@
   --gruen-mittel: #0e383d;/* Grün Verlaufsmitte */
   --hell: #a9d9c8;        /* Info-Türkis */
   --platzhalter: #2a5557; /* Platzhalter */
-  --radius-karte: 26px;
-  --radius-kasten: 28px;
-  --radius-pille: 40px;
+
+  /* Großzügig abgerundete Radien (Pebble- & Pill-Design wie in der Vorlage) */
+  --radius-karte: 28px;
+  --radius-kasten: 32px;
+  --radius-pille: 9999px;
+  --pc-radius-modal: 36px;
+  --pc-radius-bubble: 24px;
+  --pc-radius-dock: 32px;
+  --pc-radius-pill: 9999px;
+
+  /* Glassmorphism & Frosted Glass Tokens */
+  --pc-glass-bg: linear-gradient(155deg, rgba(255, 255, 255, 0.94) 0%, rgba(246, 251, 249, 0.92) 100%);
+  --pc-glass-header-bg: rgba(255, 255, 255, 0.82);
+  --pc-glass-dock-bg: rgba(255, 255, 255, 0.95);
+  --pc-glass-chip-bg: rgba(255, 255, 255, 0.9);
+  --pc-glass-card-bg: rgba(255, 255, 255, 0.98);
+
+  /* Blur & Sättigung */
+  --pc-glass-blur-modal: blur(36px) saturate(180%);
+  --pc-glass-blur-dock: blur(24px) saturate(160%);
+  --pc-glass-blur-chip: blur(8px);
+
+  /* Lichtkanten & Spekulare Kanten */
+  --pc-glass-border-specular: 1px solid rgba(255, 255, 255, 0.88);
+  --pc-glass-border-subtle: 1.5px solid rgba(18, 62, 64, 0.25);
+  --pc-glass-border-active: 1.5px solid var(--pc-lebensgruen);
+
+  /* Tiefen- & Ambient-Aura Schatten */
+  --pc-shadow-glass-modal: 
+    0 24px 64px -12px rgba(7, 49, 54, 0.28),
+    0 8px 24px -4px rgba(18, 62, 64, 0.12),
+    0 0 48px rgba(149, 200, 186, 0.18),
+    inset 0 1px 2px rgba(255, 255, 255, 0.95);
+
+  --pc-shadow-launcher: 
+    0 12px 38px rgba(7, 49, 54, 0.35),
+    0 0 24px rgba(149, 200, 186, 0.28),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.35);
+
+  --pc-shadow-launcher-hover: 
+    0 16px 44px rgba(7, 49, 54, 0.45),
+    0 0 32px rgba(149, 200, 186, 0.45),
+    inset 0 1px 1.5px rgba(255, 255, 255, 0.5);
+
+  --pc-shadow-send-btn: 
+    0 4px 14px rgba(18, 62, 64, 0.35),
+    0 0 10px rgba(149, 200, 186, 0.25);
+
   --schatten-karte: 0 18px 40px rgba(0,0,0,.25);
   --ease-ruhig: cubic-bezier(.16,1,.3,1);
   --ease-wechsel: cubic-bezier(.65,0,.35,1);
@@ -797,7 +852,7 @@ strong, b, .bold {
   
   /* Specular Border & Multi-layered Ambient Depth Shadow */
   border: 1px solid rgba(255, 255, 255, 0.88);
-  border-radius: var(--pc-radius-modal);
+  border-radius: var(--pc-radius-modal, 36px) !important;
   box-shadow: 
     0 24px 64px -12px rgba(7, 49, 54, 0.28),
     0 8px 24px -4px rgba(18, 62, 64, 0.12),
@@ -1025,7 +1080,7 @@ strong, b, .bold {
 .pc-safety-banner {
   background: rgba(149, 200, 186, 0.14);
   border: 1px solid rgba(149, 200, 186, 0.3);
-  border-radius: 12px;
+  border-radius: 18px !important;
   margin: 10px 16px 4px;
   padding: 6px 12px;
   font-size: 11px;
@@ -1102,7 +1157,7 @@ strong, b, .bold {
   max-width: 86%;
   font-size: 13.5px;
   line-height: 1.5;
-  border-radius: 20px;
+  border-radius: var(--pc-radius-bubble, 24px) !important;
   padding: 13px 17px;
   animation: messageSlideIn 0.24s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
@@ -1115,14 +1170,14 @@ strong, b, .bold {
   align-self: flex-start;
   border: 1px solid rgba(255, 255, 255, 0.95);
   box-shadow: 0 4px 18px rgba(18, 62, 64, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02);
-  border-bottom-left-radius: 6px;
+  border-bottom-left-radius: 8px !important;
 }
 
 .pc-msg.user {
   background: linear-gradient(135deg, #123e40 0%, #0d3032 100%);
   color: var(--weiss);
   align-self: flex-end;
-  border-bottom-right-radius: 6px;
+  border-bottom-right-radius: 8px !important;
   font-weight: 500;
   border: 1px solid rgba(149, 200, 186, 0.3);
   box-shadow: 0 4px 16px rgba(18, 62, 64, 0.22);
@@ -1135,7 +1190,7 @@ strong, b, .bold {
   color: #8b0000;
   width: 100%;
   max-width: 100%;
-  border-radius: 20px;
+  border-radius: var(--pc-radius-bubble, 24px) !important;
   box-shadow: 0 6px 20px rgba(211, 47, 47, 0.15);
 }
 
@@ -1307,7 +1362,7 @@ strong, b, .bold {
   font-size: 12px;
   font-weight: 600;
   padding: 8px 12px;
-  border-radius: var(--pc-radius-pill);
+  border-radius: var(--pc-radius-pill, 9999px) !important;
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(18, 62, 64, 0.04);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1337,7 +1392,7 @@ strong, b, .bold {
   box-shadow: 
     0 4px 20px rgba(18, 62, 64, 0.06),
     inset 0 1px 1px rgba(255, 255, 255, 0.95);
-  border-radius: var(--pc-radius-dock);
+  border-radius: var(--pc-radius-dock, 32px) !important;
   margin: 8px 14px 14px;
   padding: 6px 8px 6px 14px;
   display: flex;
@@ -2165,7 +2220,7 @@ strong, b, .bold {
     height: min(540px, calc(100dvh - 100px));
     max-width: calc(100vw - 32px);
     max-height: calc(100dvh - 100px);
-    border-radius: 18px;
+    border-radius: 32px !important;
     border: 1px solid rgba(18, 62, 64, 0.15);
     box-shadow: 0 16px 40px rgba(7, 49, 54, 0.35);
   }

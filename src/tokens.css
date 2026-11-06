@@ -66,13 +66,13 @@
     0 4px 14px rgba(18, 62, 64, 0.35),
     0 0 10px rgba(149, 200, 186, 0.25);
 
-  /* Radien */
-  --radius-karte: 26px;
-  --radius-kasten: 28px;
-  --radius-pille: 40px;
-  --pc-radius-modal: 28px;
-  --pc-radius-bubble: 20px;
-  --pc-radius-dock: 26px;
+  /* Radien (Großzügig abgerundet für organischen Pebble- und Pill-Charakter) */
+  --radius-karte: 28px;
+  --radius-kasten: 32px;
+  --radius-pille: 9999px;
+  --pc-radius-modal: 36px;
+  --pc-radius-bubble: 24px;
+  --pc-radius-dock: 32px;
   --pc-radius-pill: 9999px;
   --schatten-karte: 0 18px 40px rgba(0,0,0,.25);
 
