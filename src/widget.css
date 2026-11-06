@@ -6,7 +6,51 @@
    Farbwelt: Lebensgrün (#123e40), Aktivtürkis (#95c8ba), Balancebeige (#cdc9c1)
    ========================================================================== */
 
-/* 1. Primär-Definition: RBRationalNeue */
+/* 1. Primär-Definition: RB Rational Neue (Offizielle Markenschrift) */
+@font-face {
+  font-family: "RB Rational Neue";
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Light.ttf") format("truetype");
+}
+@font-face {
+  font-family: "RB Rational Neue";
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Regular.otf") format("opentype");
+}
+@font-face {
+  font-family: "RB Rational Neue";
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Medium.otf") format("opentype");
+}
+@font-face {
+  font-family: "RB Rational Neue";
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-SemiBold.otf") format("opentype");
+}
+@font-face {
+  font-family: "RB Rational Neue";
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-Bold.otf") format("opentype");
+}
+@font-face {
+  font-family: "RB Rational Neue";
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+  src: url("../assets/fonts/RBRationalNeue-ExtraBold.otf") format("opentype");
+}
+
+/* 2. Kompakter Alias: RBRationalNeue */
 @font-face {
   font-family: "RBRationalNeue";
   font-weight: 300;
@@ -50,7 +94,7 @@
   src: url("../assets/fonts/RBRationalNeue-ExtraBold.otf") format("opentype");
 }
 
-/* 2. Alias-Definition: RBR (für Code-Kompatibilität mit Paracelsus-Vorlagen) */
+/* 3. Vorlagen-Alias: RBR (für Code-Kompatibilität mit Paracelsus-Vorlagen) */
 @font-face {
   font-family: "RBR";
   font-weight: 300;
@@ -114,7 +158,7 @@
   --ease-wechsel: cubic-bezier(.65,0,.35,1);
   --ease-edel: cubic-bezier(.4,0,.2,1);
 
-  --font-brand: "RBRationalNeue", "RBR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-brand: "RB Rational Neue", "RBRationalNeue", "RBR", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   --bg-page: #f8faf9;
   --text-main: var(--gruen);
 }
@@ -665,14 +709,14 @@ strong, b, .bold {
   bottom: 24px;
   right: 24px;
   z-index: 9998;
-  background: linear-gradient(135deg, rgba(18, 62, 64, 0.95) 0%, rgba(7, 49, 54, 0.98) 100%);
+  background: linear-gradient(135deg, #123e40 0%, #073136 100%);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   color: var(--weiss);
   border: 1.5px solid rgba(149, 200, 186, 0.5);
-  border-radius: var(--radius-pille);
+  border-radius: var(--pc-radius-pill);
   padding: 10px 22px 10px 12px;
-  box-shadow: 0 12px 38px rgba(7, 49, 54, 0.35), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+  box-shadow: var(--pc-shadow-launcher);
   display: flex;
   align-items: center;
   gap: 12px;
@@ -691,7 +735,7 @@ strong, b, .bold {
 .paracelsus-chat-launcher:hover {
   transform: translateY(-3px) scale(1.02);
   border-color: var(--tuerkis);
-  box-shadow: 0 16px 44px rgba(7, 49, 54, 0.45), 0 0 20px rgba(149, 200, 186, 0.3);
+  box-shadow: var(--pc-shadow-launcher-hover);
 }
 
 .launcher-icon-wrap {
@@ -705,7 +749,7 @@ strong, b, .bold {
   justify-content: center;
   overflow: hidden;
   flex-shrink: 0;
-  box-shadow: 0 0 14px rgba(149, 200, 186, 0.35);
+  box-shadow: 0 0 16px rgba(149, 200, 186, 0.35);
 }
 
 .launcher-icon-wrap img {
@@ -713,6 +757,7 @@ strong, b, .bold {
   height: 24px;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 0 4px rgba(149, 200, 186, 0.6));
 }
 
 .launcher-text-wrap {
@@ -745,18 +790,19 @@ strong, b, .bold {
   max-width: calc(100vw - 32px);
   max-height: calc(100vh - 48px);
   
-  /* Frosted Glass Effect - 96% Opacity for Crisp Readability */
-  background: linear-gradient(155deg, rgba(255, 255, 255, 0.96) 0%, rgba(246, 251, 249, 0.94) 100%);
+  /* Authentic Frosted Glass Effect */
+  background: rgba(255, 255, 255, 0.94);
   backdrop-filter: blur(36px) saturate(180%);
   -webkit-backdrop-filter: blur(36px) saturate(180%);
   
-  /* Multilayer Depth & High-End Border */
-  border: 1px solid rgba(255, 255, 255, 0.95);
-  border-radius: 28px;
+  /* Specular Border & Multi-layered Ambient Depth Shadow */
+  border: 1px solid rgba(255, 255, 255, 0.88);
+  border-radius: var(--pc-radius-modal);
   box-shadow: 
-    0 24px 64px rgba(18, 62, 64, 0.18),
-    0 4px 16px rgba(0, 0, 0, 0.04),
-    inset 0 1px 2px rgba(255, 255, 255, 1);
+    0 24px 64px -12px rgba(7, 49, 54, 0.28),
+    0 8px 24px -4px rgba(18, 62, 64, 0.12),
+    0 0 48px rgba(149, 200, 186, 0.18),
+    inset 0 1px 2px rgba(255, 255, 255, 0.95);
   
   display: flex;
   flex-direction: column;
@@ -776,15 +822,15 @@ strong, b, .bold {
 
 /* Frosted Header with Ambient Avatar Aura */
 .pc-header {
-  background: rgba(255, 255, 255, 0.7);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
+  background: var(--pc-glass-header-bg);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   color: var(--gruen);
   padding: 16px 20px 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(18, 62, 64, 0.06);
+  border-bottom: 1px solid rgba(18, 62, 64, 0.08);
 }
 
 .pc-header-brand {
@@ -797,7 +843,7 @@ strong, b, .bold {
 .pc-brand-p {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #123e40 0%, #0c2b2d 100%);
+  background: linear-gradient(135deg, var(--gruen) 0%, var(--petrol) 100%);
   border: 1.5px solid rgba(149, 200, 186, 0.75);
   border-radius: 50%;
   display: flex;
@@ -805,7 +851,7 @@ strong, b, .bold {
   justify-content: center;
   flex-shrink: 0;
   position: relative;
-  box-shadow: 0 4px 14px rgba(18, 62, 64, 0.2);
+  box-shadow: 0 4px 14px rgba(18, 62, 64, 0.25), 0 0 16px rgba(149, 200, 186, 0.4);
 }
 
 .pc-brand-p::before {
@@ -813,15 +859,15 @@ strong, b, .bold {
   position: absolute;
   inset: -6px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(149, 200, 186, 0.7) 0%, rgba(18, 62, 64, 0.25) 65%, transparent 100%);
+  background: radial-gradient(circle, rgba(149, 200, 186, 0.45) 0%, rgba(18, 62, 64, 0.25) 65%, transparent 100%);
   filter: blur(8px);
   z-index: 0;
   animation: ambientAura 4s ease-in-out infinite alternate;
 }
 
 @keyframes ambientAura {
-  0% { transform: scale(0.95); opacity: 0.7; }
-  100% { transform: scale(1.15); opacity: 1; }
+  0% { transform: scale(0.95); opacity: 0.75; }
+  100% { transform: scale(1.15); opacity: 1.0; }
 }
 
 .pc-brand-p img {
@@ -831,6 +877,7 @@ strong, b, .bold {
   height: 24px;
   object-fit: contain;
   display: block;
+  filter: drop-shadow(0 0 4px rgba(149, 200, 186, 0.6));
 }
 
 .pc-header-info h4 {
@@ -873,7 +920,7 @@ strong, b, .bold {
 .pc-lang-picker {
   background: #ffffff !important;
   border: 1.5px solid rgba(18, 62, 64, 0.22) !important;
-  border-radius: 999px !important;
+  border-radius: var(--pc-radius-pill) !important;
   box-shadow: 0 2px 6px rgba(18, 62, 64, 0.08) !important;
   color: var(--gruen) !important;
   height: 28px;
@@ -952,7 +999,7 @@ strong, b, .bold {
 .pc-close-btn {
   background: var(--gruen);
   color: var(--weiss);
-  border: none;
+  border: 1px solid rgba(149, 200, 186, 0.4);
   width: 34px;
   height: 34px;
   border-radius: 50%;
@@ -960,15 +1007,16 @@ strong, b, .bold {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(18, 62, 64, 0.2);
+  box-shadow: 0 4px 14px rgba(18, 62, 64, 0.25);
   transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
   padding: 0;
 }
 
 .pc-close-btn:hover {
   background: var(--petrol);
+  border-color: var(--tuerkis);
   transform: scale(1.08) rotate(90deg);
-  box-shadow: 0 6px 18px rgba(18, 62, 64, 0.3);
+  box-shadow: 0 6px 18px rgba(7, 49, 54, 0.4);
 }
 
 /* ==========================================================================
@@ -1060,7 +1108,7 @@ strong, b, .bold {
 }
 
 .pc-msg.bot {
-  background: rgba(255, 255, 255, 0.94);
+  background: rgba(255, 255, 255, 0.98);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   color: var(--gruen);
@@ -1071,11 +1119,12 @@ strong, b, .bold {
 }
 
 .pc-msg.user {
-  background: linear-gradient(135deg, var(--gruen) 0%, var(--petrol) 100%);
+  background: linear-gradient(135deg, #123e40 0%, #0d3032 100%);
   color: var(--weiss);
   align-self: flex-end;
   border-bottom-right-radius: 6px;
   font-weight: 500;
+  border: 1px solid rgba(149, 200, 186, 0.3);
   box-shadow: 0 4px 16px rgba(18, 62, 64, 0.22);
 }
 
@@ -1249,16 +1298,16 @@ strong, b, .bold {
 }
 
 .pc-chip {
-  background: rgba(255, 255, 255, 0.88);
+  background: rgba(255, 255, 255, 0.85);
   backdrop-filter: blur(8px);
   -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(149, 200, 186, 0.45);
+  border: 1.5px solid rgba(18, 62, 64, 0.25);
   color: var(--gruen);
   font-family: var(--font-brand);
   font-size: 12px;
   font-weight: 600;
   padding: 8px 12px;
-  border-radius: 999px;
+  border-radius: var(--pc-radius-pill);
   cursor: pointer;
   box-shadow: 0 2px 6px rgba(18, 62, 64, 0.04);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
@@ -1276,19 +1325,19 @@ strong, b, .bold {
   border-color: var(--tuerkis);
   color: var(--gruen);
   transform: translateY(-1.5px);
-  box-shadow: 0 4px 14px rgba(149, 200, 186, 0.35);
+  box-shadow: 0 4px 14px rgba(149, 200, 186, 0.45);
 }
 
 /* Floating Glass Input Dock */
 .pc-input-bar {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
+  background: var(--pc-glass-dock-bg);
+  backdrop-filter: var(--pc-glass-blur-dock);
+  -webkit-backdrop-filter: var(--pc-glass-blur-dock);
   border: 1.5px solid rgba(149, 200, 186, 0.45);
   box-shadow: 
     0 4px 20px rgba(18, 62, 64, 0.06),
     inset 0 1px 1px rgba(255, 255, 255, 0.95);
-  border-radius: 26px;
+  border-radius: var(--pc-radius-dock);
   margin: 8px 14px 14px;
   padding: 6px 8px 6px 14px;
   display: flex;
@@ -1323,7 +1372,8 @@ strong, b, .bold {
 }
 
 .pc-input-bar input::placeholder {
-  color: #6a8887;
+  color: var(--salbei-label);
+  opacity: 1;
 }
 
 /* Quick Action Buttons in Input Dock */
@@ -1349,9 +1399,9 @@ strong, b, .bold {
 }
 
 .pc-send-btn {
-  background: linear-gradient(135deg, var(--tuerkis) 0%, var(--gruen) 100%);
+  background: linear-gradient(135deg, var(--gruen) 0%, var(--petrol) 100%);
   color: var(--weiss);
-  border: none;
+  border: 1px solid rgba(149, 200, 186, 0.4);
   width: 38px;
   height: 38px;
   border-radius: 50%;
@@ -1359,14 +1409,14 @@ strong, b, .bold {
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 14px rgba(149, 200, 186, 0.55), 0 2px 6px rgba(18, 62, 64, 0.25);
+  box-shadow: 0 4px 14px rgba(18, 62, 64, 0.35), 0 0 10px rgba(149, 200, 186, 0.25);
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease;
   flex-shrink: 0;
 }
 
 .pc-send-btn:hover {
   transform: scale(1.08);
-  box-shadow: 0 6px 20px rgba(149, 200, 186, 0.75);
+  box-shadow: 0 6px 20px rgba(7, 49, 54, 0.45), 0 0 14px rgba(149, 200, 186, 0.45);
 }
 
 .pc-send-btn svg {
@@ -1866,7 +1916,7 @@ strong, b, .bold {
   padding-top: 8px;
   border-top: 1px dashed rgba(18, 62, 64, 0.1);
   font-size: 11px;
-  color: #6f8585;
+  color: var(--salbei);
 }
 
 .pc-feedback-bar span {
@@ -2108,7 +2158,7 @@ strong, b, .bold {
   /* Auch auf Smartphones: Bleibt ein schwebendes, kompaktes Popup über der Website */
   .paracelsus-chat-window {
     top: auto;
-    bottom: 80px;
+    bottom: 16px;
     right: 16px;
     left: auto;
     width: min(380px, calc(100vw - 32px));

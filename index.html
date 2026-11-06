@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Paracelsus Kliniken — Digitaler Klinik-Wegweiser</title>
-  <link rel="stylesheet" href="src/widget.css?v=20261105c">
+  <link rel="stylesheet" href="src/widget.css?v=20261106_glass">
 </head>
 <body>
   <a href="#mainContent" class="skip-link visually-hidden">Zum Hauptinhalt springen</a>
@@ -1002,10 +1002,6 @@
       recognition.onstart = () => {
         voiceBtn.classList.add("recording");
         chatInput.placeholder = "Ich höre zu...";
-        const mVoice = document.getElementById("pcModeVoice");
-        const mChat = document.getElementById("pcModeChat");
-        if (mVoice) mVoice.classList.add("active");
-        if (mChat) mChat.classList.remove("active");
       };
       recognition.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
@@ -1015,18 +1011,10 @@
       recognition.onerror = () => {
         voiceBtn.classList.remove("recording");
         chatInput.placeholder = "Frage oder Beschwerde eingeben...";
-        const mVoice = document.getElementById("pcModeVoice");
-        const mChat = document.getElementById("pcModeChat");
-        if (mVoice) mVoice.classList.remove("active");
-        if (mChat) mChat.classList.add("active");
       };
       recognition.onend = () => {
         voiceBtn.classList.remove("recording");
         chatInput.placeholder = "Frage oder Beschwerde eingeben...";
-        const mVoice = document.getElementById("pcModeVoice");
-        const mChat = document.getElementById("pcModeChat");
-        if (mVoice) mVoice.classList.remove("active");
-        if (mChat) mChat.classList.add("active");
       };
     } else {
       voiceBtn.style.display = "none";
@@ -1040,24 +1028,6 @@
         recognition.stop();
       }
     }
-
-    function switchMode(mode) {
-      const chatBtn = document.getElementById("pcModeChat");
-      const voiceBtn = document.getElementById("pcModeVoice");
-      if (mode === "voice") {
-        if (chatBtn) chatBtn.classList.remove("active");
-        if (voiceBtn) voiceBtn.classList.add("active");
-        toggleVoiceInput();
-      } else {
-        if (voiceBtn) voiceBtn.classList.remove("active");
-        if (chatBtn) chatBtn.classList.add("active");
-        if (recognition) {
-          try { recognition.stop(); } catch(e){}
-        }
-        chatInput.focus();
-      }
-    }
-    window.switchMode = switchMode;
 
     // Modal Funktionen
     function openAnalyticsModal() {
